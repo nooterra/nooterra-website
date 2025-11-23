@@ -6,7 +6,7 @@ import { CodeShowcase } from "@/components/CodeShowcase";
 import { Footer } from "@/components/Footer";
 import { Architecture } from "@/components/Architecture";
 import { FinalCTA } from "@/components/FinalCTA";
-import { DemoSection } from "@/components/DemoSection";
+import { FlowSection } from "@/components/FlowSection";
 
 export default function Home() {
   return (
@@ -17,7 +17,7 @@ export default function Home() {
         <Problem />
         <Primitives />
         <Architecture />
-        <DemoSection />
+        <FlowSection />
         <CodeShowcase />
         <FinalCTA />
       </main>
