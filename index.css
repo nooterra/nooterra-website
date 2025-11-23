@@ -1,0 +1,5 @@
+/* Minimal stylesheet placeholder (tailwind via CDN in index.html) */
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+}
