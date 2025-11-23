@@ -59,3 +59,15 @@
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 12px;
 }
+.pulse {
+  stroke-dasharray: 6 10;
+  animation: dash 4s linear infinite;
+}
+.node:hover text {
+  fill: #7dd3fc;
+}
+@keyframes dash {
+  to {
+    stroke-dashoffset: -200;
+  }
+}

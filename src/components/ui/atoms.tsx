@@ -30,10 +30,13 @@ export const Button = ({
   children: React.ReactNode;
   variant?: "primary" | "secondary"
 }) => {
-  const base = "inline-flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-300 group rounded-md";
+  const base =
+    "relative overflow-hidden inline-flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-300 group rounded-md";
   const styles = {
-    primary: "bg-primary text-void hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]",
-    secondary: "glass-panel text-secondary hover:text-primary hover:border-primary/30",
+    primary:
+      "text-void bg-gradient-to-r from-cyan-300 via-blue-400 to-fuchsia-400 animate-gradient bg-[length:200%_200%] shadow-[0_8px_30px_rgba(99,102,241,0.35)] hover:scale-[1.02]",
+    secondary:
+      "glass-panel text-secondary hover:text-primary hover:border-primary/30 bg-white/5 backdrop-blur border border-white/10 hover:scale-[1.01]",
   };
 
   return (

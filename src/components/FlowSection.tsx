@@ -91,68 +91,7 @@ function Diagram({
         </div>
         <p>{description}</p>
       </div>
-      <svg className={styles.svg} viewBox="0 0 640 260" role="img" aria-label={`${title} flow`}>
-        <defs>
-          <marker
-            id={`${title}-arrow`}
-            viewBox="0 0 10 10"
-            refX="6"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto-start-reverse"
-          >
-            <path d="M 0 0 L 10 5 L 0 10 z" fill={accent} />
-          </marker>
-        </defs>
-        {edges.map((e, i) => {
-          const from = layout(nodes, e[0]);
-          const to = layout(nodes, e[1]);
-          if (!from || !to) return null;
-          return (
-            <line
-              key={i}
-              x1={from.x}
-              y1={from.y}
-              x2={to.x}
-              y2={to.y}
-              stroke={accent}
-              strokeWidth="3"
-              markerEnd={`url(#${title}-arrow)`}
-              opacity="0.85"
-            />
-          );
-        })}
-        {nodes.map((n) => {
-          const pos = layout(nodes, n.id)!;
-          return (
-            <g key={n.id}>
-              <rect
-                x={pos.x - 70}
-                y={pos.y - 28}
-                rx="10"
-                ry="10"
-                width="140"
-                height="56"
-                fill="rgba(17,24,39,0.8)"
-                stroke="rgba(255,255,255,0.08)"
-                strokeWidth="1.2"
-              />
-              <text
-                x={pos.x}
-                y={pos.y}
-                textAnchor="middle"
-                fill="#e5e7eb"
-                fontFamily="Inter, sans-serif"
-                fontSize="13"
-                style={{ whiteSpace: "pre-line" }}
-              >
-                {n.label}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+      <AnimatedDiagram nodes={nodes} edges={edges} accent={accent} title={title} />
     </div>
   );
 }
@@ -166,4 +105,56 @@ function layout(nodes: Node[], id: string) {
   const x = 70 + col * 90;
   const y = 90 + row * 90;
   return { x, y };
+}
+
+function AnimatedDiagram({ nodes, edges, accent, title }: { nodes: Node[]; edges: Edge[]; accent: string; title: string }) {
+  return (
+    <svg className={styles.svg} viewBox="0 0 640 260" role="img" aria-label={`${title} flow`}>
+      <defs>
+        <radialGradient id={`${title}-glow`} cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stopColor={accent} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={accent} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {edges.map((e, i) => {
+        const from = layout(nodes, e[0]);
+        const to = layout(nodes, e[1]);
+        if (!from || !to) return null;
+        return (
+          <g key={i}>
+            <line
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              stroke={accent}
+              strokeWidth="3"
+              strokeOpacity="0.8"
+              className={styles.pulse}
+            />
+          </g>
+        );
+      })}
+      {nodes.map((n) => {
+        const pos = layout(nodes, n.id)!;
+        return (
+          <g key={n.id} className={styles.node}>
+            <circle cx={pos.x} cy={pos.y} r="38" fill="rgba(17,24,39,0.85)" stroke="rgba(255,255,255,0.12)" />
+            <circle cx={pos.x} cy={pos.y} r="48" fill={`url(#${title}-glow)`} />
+            <text
+              x={pos.x}
+              y={pos.y}
+              textAnchor="middle"
+              fill="#e5e7eb"
+              fontFamily="Inter, sans-serif"
+              fontSize="12"
+              style={{ whiteSpace: "pre-line" }}
+            >
+              {n.label}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
 }
