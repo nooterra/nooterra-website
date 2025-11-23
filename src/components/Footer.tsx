@@ -13,19 +13,14 @@ export const Footer = () => (
         <div className="flex flex-col gap-4">
           <h4 className="font-bold text-primary">Developers</h4>
           <a href="https://docs.nooterra.ai" className="text-secondary hover:text-signal">Documentation</a>
-          <a href="https://docs.nooterra.ai" className="text-secondary hover:text-signal">API Reference</a>
-          <a href="https://github.com/nooterra/nooterra-protocol" className="text-secondary hover:text-signal">SDKs</a>
-        </div>
-        <div className="flex flex-col gap-4">
-          <h4 className="font-bold text-primary">Governance</h4>
-          <a href="#" className="text-secondary hover:text-signal">Manifesto</a>
-          <a href="#" className="text-secondary hover:text-signal">Proposal Forum</a>
+          <a href="https://docs.nooterra.ai/quickstart" className="text-secondary hover:text-signal">Quickstart</a>
+          <a href="https://github.com/nooterra/nooterra-protocol" className="text-secondary hover:text-signal">GitHub</a>
         </div>
         <div className="flex flex-col gap-4">
           <h4 className="font-bold text-primary">Connect</h4>
-          <a href="https://github.com/nooterra/nooterra-protocol" className="text-secondary hover:text-signal">GitHub</a>
-          <a href="#" className="text-secondary hover:text-signal">Discord</a>
-          <a href="#" className="text-secondary hover:text-signal">Twitter</a>
+          <a href="mailto:hi@nooterra.ai" className="text-secondary hover:text-signal">Email</a>
+          <a href="https://github.com/nooterra" className="text-secondary hover:text-signal">GitHub Org</a>
+          <a href="https://docs.nooterra.ai" className="text-secondary hover:text-signal">Docs</a>
         </div>
       </div>
     </div>

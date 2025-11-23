@@ -1,8 +1,7 @@
 "use client";
-import { Activity } from "lucide-react";
 
 export const StatusHeader = () => (
-  <div className="w-full border-b border-border/10 bg-void/50 backdrop-blur-md sticky top-0 z-50 h-10 flex items-center justify-between px-6 text-xs font-mono text-tertiary">
+  <div className="w-full border-b border-white/10 bg-void/50 backdrop-blur-md sticky top-0 z-50 h-10 flex items-center justify-between px-6 text-xs font-mono text-tertiary">
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-2 text-signal">
         <div className="w-2 h-2 rounded-full bg-signal animate-pulse shadow-[0_0_8px_rgba(0,217,255,0.6)]" />

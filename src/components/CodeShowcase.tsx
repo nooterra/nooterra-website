@@ -2,7 +2,7 @@ const CodeBlock = () => (
   <div className="font-mono text-sm p-6 bg-[#011627] rounded-lg border border-white/5 overflow-x-auto text-gray-300">
     <div>
       <span className="text-purple-400">import</span>{" "}
-      <span className="text-yellow-300">{`{ NoterraAgent }`}</span>{" "}
+      <span className="text-yellow-300">{`{ NooterraAgent }`}</span>{" "}
       <span className="text-purple-400">from</span>{" "}
       <span className="text-green-400">'@nooterra/sdk'</span>;
     </div>
@@ -10,7 +10,7 @@ const CodeBlock = () => (
     <div className="opacity-50 text-gray-500">// 1. Initialize and register capabilities</div>
     <div>
       <span className="text-purple-400">const</span> <span className="text-blue-400">agent</span> =
-      <span className="text-purple-400">new</span> <span className="text-yellow-300">NoterraAgent</span>({`{`}
+      <span className="text-purple-400">new</span> <span className="text-yellow-300">NooterraAgent</span>({`{`}
     </div>
     <div className="pl-4">
       <span className="text-blue-300">agentId</span>: <span className="text-green-400">'did:noot:xyz...'</span>,

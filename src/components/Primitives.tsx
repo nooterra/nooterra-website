@@ -15,7 +15,7 @@ const DiscoverySim = () => {
   }, []);
 
   return (
-    <div className="w-full h-64 bg-void border border-border/10 rounded-lg p-6 font-mono text-xs relative overflow-hidden">
+    <div className="w-full h-64 bg-void border border-white/10 rounded-lg p-6 font-mono text-xs relative overflow-hidden">
       <div className="absolute top-6 left-6 text-tertiary flex gap-2 items-center">
          <span className="text-signal">❯</span> QUERY_INTENT
       </div>

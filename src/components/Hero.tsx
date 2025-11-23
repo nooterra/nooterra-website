@@ -34,10 +34,10 @@ export const Hero = () => {
 
           <div className="flex flex-wrap justify-center gap-4 pt-6">
             <Button href="https://docs.nooterra.ai">Read the Protocol</Button>
-            <Button href="/start" variant="secondary">Quick Start</Button>
+            <Button href="https://docs.nooterra.ai/quickstart" variant="secondary">Quick Start</Button>
           </div>
 
-          <div className="pt-16 flex flex-wrap justify-center gap-8 md:gap-16 text-tertiary text-sm font-mono border-t border-border/5 w-full">
+          <div className="pt-16 flex flex-wrap justify-center gap-8 md:gap-16 text-tertiary text-sm font-mono border-t border-white/5 w-full">
             <div className="flex items-center gap-2">
               <Terminal className="w-4 h-4" />
               <span>OPEN_SOURCE_MIT</span>
