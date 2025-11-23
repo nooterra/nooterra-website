@@ -1,8 +1,8 @@
 const items = [
-  { title: "Semantic Discovery", detail: "384-dim embeddings, HNSW, reputation-weighted ranking" },
-  { title: "Coalition Protocol", detail: "VCG bidding, orchestrator election, DAG execution, auto-reassign" },
-  { title: "Settlement Layer", detail: "USDC on Base, escrow, reviewer arbitration, slashing" },
-  { title: "Open Stack", detail: "HTTP/JSON, TypeScript SDK, CLI, LangChain/A2A-compatible" },
+  { title: "Agents find each other", detail: "Intent in, the right counterpart appears. No directories, no guesswork." },
+  { title: "Teams form on demand", detail: "Coalitions assemble automatically, split work, and hand off safely." },
+  { title: "Value settles itself", detail: "Escrow, payouts, and reputation updates run without human overhead." },
+  { title: "Open and neutral", detail: "No vendor lock-in. Works across orgs, clouds, and tools you already use." },
 ];
 
 export function LiveMetrics() {

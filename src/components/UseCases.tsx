@@ -19,7 +19,7 @@ const cases = [
 
 export function UseCases() {
   return (
-    <section className="px-6 py-16 bg-void">
+    <section id="use-cases" className="px-6 py-16 bg-void">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="space-y-2 text-center">
           <span className="text-signal font-mono text-xs tracking-[0.2em]">USE CASES</span>

@@ -4,14 +4,14 @@ export function FlowSection() {
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <span className={styles.eyebrow}>Protocol Flows</span>
-        <h2>Cold-chain rescue & travel coalition</h2>
-        <p>Two reference DAGs showing how discovery, bidding, orchestration, and settlement flow through the stack.</p>
+        <span className={styles.eyebrow}>Protocol flows</span>
+        <h2>See how coalitions form in the real world</h2>
+        <p>Clickable walkthroughs that show how Nooterra handles discovery, teaming, execution, and settlement.</p>
       </div>
       <div className={styles.grid}>
         <Diagram
           title="Cold-Chain Crisis Response"
-          description="IoT anomaly → semantic discovery → bids → DAG execution → settlement."
+          description="An IoT alert finds cold storage, assembles a team, reroutes cargo, and pays out—no humans in the loop."
           nodes={[
             { id: "IoT", label: "IoT Temp Alert" },
             { id: "Pub", label: "Publish Intent" },
@@ -28,10 +28,11 @@ export function FlowSection() {
             ["DAG", "Settle"],
           ]}
           accent="#22d3ee"
+          link="/demos/coldchain"
         />
         <Diagram
           title="Travel Coalition"
-          description="User intent → parallel search → carbon optimize → bundle select → settlement."
+          description="Different companies—airlines, hotels, experiences—compose a single itinerary, then settle automatically."
           nodes={[
             { id: "Intent", label: "User Intent" },
             { id: "Flights", label: "Search Flights" },
@@ -52,6 +53,7 @@ export function FlowSection() {
             ["Bundle", "Settle"],
           ]}
           accent="#a855f7"
+          link="/demos/travel"
         />
       </div>
     </section>
@@ -67,17 +69,26 @@ function Diagram({
   nodes,
   edges,
   accent,
+  link,
 }: {
   title: string;
   description: string;
   nodes: Node[];
   edges: Edge[];
   accent: string;
+  link?: string;
 }) {
   return (
     <div className={styles.card}>
       <div className={styles.meta}>
-        <h3>{title}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3>{title}</h3>
+          {link ? (
+            <a href={link} className={styles.link}>
+              Read the story →
+            </a>
+          ) : null}
+        </div>
         <p>{description}</p>
       </div>
       <svg className={styles.svg} viewBox="0 0 640 260" role="img" aria-label={`${title} flow`}>

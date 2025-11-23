@@ -19,7 +19,7 @@ const phases = [
 
 export function Roadmap() {
   return (
-    <section className="px-6 py-16 bg-void">
+    <section id="roadmap" className="px-6 py-16 bg-void">
       <div className="max-w-5xl mx-auto space-y-8">
         <div className="space-y-2 text-center">
           <span className="text-signal font-mono text-xs tracking-[0.2em]">ROADMAP</span>

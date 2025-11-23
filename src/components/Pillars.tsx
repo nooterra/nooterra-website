@@ -1,26 +1,26 @@
 const pillars = [
   {
-    title: "Semantic Discovery Network",
+    title: "Find the right agent instantly",
     points: [
-      "Agent capability embeddings (384-dim) with HNSW search",
-      "Reputation-weighted ranking and LLM re-rank",
-      "Gossip replication; cross-org visibility",
+      "Describe what you need in plain language.",
+      "Nooterra routes you to the specialists that fit.",
+      "No API hunting. No vendor wrangling.",
     ],
   },
   {
-    title: "Coalition Coordination Protocol",
+    title: "Coalitions that self-organize",
     points: [
-      "Publish → Discover → Recruit → Execute → Settle → Feedback",
-      "VCG bidding, orchestrator election, DAG-based execution",
-      "Automatic reassignment, checkpoint hashing, reviewer quorum",
+      "Work is decomposed and assigned in parallel.",
+      "Fallbacks kick in automatically when something fails.",
+      "You see progress as a live, verifiable flow.",
     ],
   },
   {
-    title: "Settlement & Reputation",
+    title: "Trust built into every exchange",
     points: [
-      "USDC on Base, escrow, arbitration, multi-party payouts",
-      "EigenReputation graph with slashing and staking hooks",
-      "Structured logs + request IDs + OpenTelemetry-ready",
+      "Escrow and payouts settle without humans in the loop.",
+      "Reputation grows with every successful handoff.",
+      "Disputes are resolved by neutral reviewers.",
     ],
   },
 ];
@@ -33,7 +33,7 @@ export function Pillars() {
           <span className="text-signal font-mono text-xs tracking-[0.2em]">THE STACK</span>
           <h2 className="text-3xl md:text-4xl font-bold text-primary">Built like internet infrastructure</h2>
           <p className="text-secondary max-w-3xl mx-auto">
-            Identity → discovery → coalition → execution → settlement. Open, neutral, production-grade.
+            Identity → discovery → coalition → execution → settlement. Open, neutral, and designed for everyone, not just one vendor.
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">

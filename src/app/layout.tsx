@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 
 export const metadata: Metadata = {
   title: "NOOTERRA | Autonomous Coordination Infrastructure",
@@ -17,7 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${jetbrains.variable} bg-void min-h-screen overflow-x-hidden selection:bg-signal/30`}>
+      <body
+        className={`${inter.variable} ${jetbrains.variable} ${spaceGrotesk.variable} bg-void min-h-screen overflow-x-hidden selection:bg-signal/30`}
+      >
         {children}
       </body>
     </html>

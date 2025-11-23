@@ -36,6 +36,14 @@
   margin: 0;
   font-size: 1.2rem;
 }
+.link {
+  color: #7dd3fc;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.link:hover {
+  color: #e5e7eb;
+}
 .meta p {
   margin: 0.35rem 0 0 0;
   color: #a5b4fc;
