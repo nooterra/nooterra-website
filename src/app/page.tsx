@@ -6,6 +6,7 @@ import { CodeShowcase } from "@/components/CodeShowcase";
 import { Footer } from "@/components/Footer";
 import { Architecture } from "@/components/Architecture";
 import { FinalCTA } from "@/components/FinalCTA";
+import { DemoSection } from "@/components/DemoSection";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
         <Problem />
         <Primitives />
         <Architecture />
+        <DemoSection />
         <CodeShowcase />
         <FinalCTA />
       </main>
