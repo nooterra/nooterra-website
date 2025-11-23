@@ -1,12 +1,14 @@
 import { StatusHeader } from "@/components/StatusHeader";
 import { Hero } from "@/components/Hero";
-import { Problem } from "@/components/Problem";
-import { Primitives } from "@/components/Primitives";
-import { CodeShowcase } from "@/components/CodeShowcase";
-import { Footer } from "@/components/Footer";
-import { Architecture } from "@/components/Architecture";
-import { FinalCTA } from "@/components/FinalCTA";
+import { LiveMetrics } from "@/components/LiveMetrics";
+import { Pillars } from "@/components/Pillars";
 import { FlowSection } from "@/components/FlowSection";
+import { UseCases } from "@/components/UseCases";
+import { Benchmarks } from "@/components/Benchmarks";
+import { Roadmap } from "@/components/Roadmap";
+import { CodeShowcase } from "@/components/CodeShowcase";
+import { FinalCTA } from "@/components/FinalCTA";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -14,10 +16,12 @@ export default function Home() {
       <StatusHeader />
       <main>
         <Hero />
-        <Problem />
-        <Primitives />
-        <Architecture />
+        <LiveMetrics />
+        <Pillars />
         <FlowSection />
+        <UseCases />
+        <Benchmarks />
+        <Roadmap />
         <CodeShowcase />
         <FinalCTA />
       </main>
