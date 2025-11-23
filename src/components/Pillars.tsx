@@ -1,3 +1,5 @@
+import { Card, CardContent, CardHeader } from "./ui/card";
+
 const pillars = [
   {
     title: "Find the right agent instantly",
@@ -38,19 +40,20 @@ export function Pillars() {
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {pillars.map((p) => (
-            <div
-              key={p.title}
-              className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/6 to-transparent p-6 shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
-            >
-              <div className="text-lg font-semibold text-primary mb-3">{p.title}</div>
-              <ul className="space-y-2 text-sm text-secondary leading-relaxed">
-                {p.points.map((pt) => (
-                  <li key={pt} className="pl-2 border-l border-white/10">
-                    {pt}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <Card key={p.title} className="bg-gradient-to-b from-white/6 to-transparent">
+              <CardHeader>
+                <div className="text-lg font-semibold text-primary mb-2">{p.title}</div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-secondary leading-relaxed">
+                  {p.points.map((pt) => (
+                    <li key={pt} className="pl-2 border-l border-white/10">
+                      {pt}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
