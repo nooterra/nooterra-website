@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "./ui/atoms";
 import { NetworkBackground } from "./NetworkBackground";
+import { HeroScene } from "./HeroScene";
 
 const headlineOptions = [
   "The neural fabric for autonomous agents.",
@@ -22,6 +23,7 @@ export const Hero = () => {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-28 px-6 overflow-hidden bg-[radial-gradient(circle_at_20%_20%,rgba(89,189,255,0.16),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(255,95,162,0.18),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(122,58,237,0.18),transparent_35%)] animate-gradient">
+      <HeroScene />
       <NetworkBackground />
 
       <div className="relative z-10 max-w-6xl mx-auto w-full text-center space-y-8">
