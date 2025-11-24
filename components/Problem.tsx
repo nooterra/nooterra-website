@@ -21,7 +21,7 @@ const problems = [
 ];
 
 export const Problem = () => (
-  <section className="py-24 bg-substrate px-6 border-t border-white/5">
+  <section id="usecases" className="py-24 bg-substrate px-6 border-t border-white/5">
     <div className="max-w-6xl mx-auto">
       <div className="mb-12">
         <h2 className="font-mono text-tertiary uppercase text-xs tracking-widest mb-4">The Gap</h2>

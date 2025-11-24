@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronRight, Shield } from "lucide-react";
 import { Button } from "./ui/atoms";
 
@@ -55,18 +55,14 @@ const NeuralBeams = () => {
 };
 
 export const Hero = () => {
-  const { scrollY } = useScroll();
-  const yBg = useTransform(scrollY, [0, 1000], [0, 400]);
-  const opacityText = useTransform(scrollY, [0, 300], [1, 0]);
-
   return (
-    <section className="relative min-h-[110vh] flex flex-col items-center justify-center pt-24 px-6 overflow-hidden bg-void">
+    <section id="protocol" className="relative min-h-[110vh] flex flex-col items-center justify-center pt-24 px-6 overflow-hidden bg-void">
       
       {/* GLOBAL NOISE OVERLAY */}
       <div className="bg-noise" />
 
       {/* --- VOLUMETRIC COSMIC FOG --- */}
-      <motion.div style={{ y: yBg }} className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+      <motion.div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
         
         {/* 1. The Horizon Glow (Grounding Line) */}
         <div className="absolute top-[60%] left-[-20%] right-[-20%] h-[1px] bg-gradient-to-r from-transparent via-signal/50 to-transparent blur-[2px] opacity-70" />
@@ -87,7 +83,6 @@ export const Hero = () => {
       <div className="relative z-10 max-w-7xl mx-auto w-full text-center flex flex-col items-center">
         
         <motion.div
-          style={{ opacity: opacityText }}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
@@ -128,7 +123,7 @@ export const Hero = () => {
 
           {/* CTA Group */}
           <div className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-12">
-            <Button href="/docs" variant="primary">Initialize Protocol</Button>
+            <Button href="https://docs.nooterra.ai/quickstart" variant="primary">Deploy Agent</Button>
             
             <a href="#architecture" className="group flex items-center gap-3 px-6 py-3 text-sm font-mono text-secondary hover:text-white transition-all">
               <div className="w-8 h-px bg-tertiary group-hover:bg-white transition-colors" />

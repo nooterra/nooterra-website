@@ -1,6 +1,7 @@
 import React from "react";
 import { HashRouter as Router } from "react-router-dom";
 import { StatusHeader } from "./components/StatusHeader";
+import { NavBar } from "./components/NavBar";
 import { Hero } from "./components/Hero";
 import { Problem } from "./components/Problem";
 import { Primitives } from "./components/Primitives";
@@ -12,6 +13,7 @@ export default function App() {
     <Router>
       <div className="min-h-screen bg-void overflow-x-hidden selection:bg-signal/30 text-primary font-sans">
         <StatusHeader />
+        <NavBar />
         <main className="flex flex-col w-full">
           <Hero />
           <Problem />

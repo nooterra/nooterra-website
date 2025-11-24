@@ -43,7 +43,7 @@ const DiscoverySim = () => {
 };
 
 export const Primitives = () => (
-  <section className="py-32 bg-void px-6 border-t border-white/5">
+  <section id="demos" className="py-32 bg-void px-6 border-t border-white/5">
     <div className="max-w-6xl mx-auto space-y-32">
       
       {/* 1. Discovery */}
