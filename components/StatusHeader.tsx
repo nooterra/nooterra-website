@@ -14,8 +14,8 @@ export const StatusHeader = () => (
     </div>
     <div className="flex items-center gap-4">
         <a href="https://docs.nooterra.ai" className="hover:text-primary transition-colors">Docs</a>
-        <a href="https://raw.githubusercontent.com/nooterra/nooterra-docs/main/docs/whitepaper.md" className="hover:text-primary transition-colors">Whitepaper</a>
-        <a href="https://raw.githubusercontent.com/nooterra/nooterra-docs/main/docs/technical-spec.md" className="hover:text-primary transition-colors">Tech Spec</a>
+        <a href="https://docs.nooterra.ai/whitepaper" className="hover:text-primary transition-colors">Whitepaper</a>
+        <a href="https://docs.nooterra.ai/technical-spec" className="hover:text-primary transition-colors">Tech Spec</a>
         <a href="https://github.com/nooterra" className="hover:text-primary transition-colors">GitHub</a>
     </div>
   </div>
