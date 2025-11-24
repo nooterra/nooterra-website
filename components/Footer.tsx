@@ -1,38 +1,33 @@
 import React from "react";
+import { ShinyButton } from "./ui/ShinyButton";
 
 export const Footer = () => (
-  <footer className="py-20 bg-void border-t border-white/5 px-6">
-    <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
-      <div>
-        <div className="font-bold text-2xl tracking-tighter text-white mb-6">NOOTERRA</div>
-        <div className="space-y-2 text-sm text-tertiary">
-          <p>Protocol Version: 0.4.2 (Testnet)</p>
-          <p>Status: All Systems Operational</p>
-        </div>
+  <footer className="py-32 bg-void border-t border-white/5 px-6 text-center relative overflow-hidden">
+    <div className="absolute inset-0 bg-radial-gradient from-execute/5 to-transparent opacity-20" />
+    
+    <div className="max-w-4xl mx-auto relative z-10 space-y-12">
+      <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+        The internet connected computers.<br />
+        Social media connected people.<br />
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-solar to-execute">
+          Nooterra connects minds.
+        </span>
+      </h2>
+      
+      <div className="flex justify-center">
+        <ShinyButton className="px-12 py-4 bg-white/5 uppercase tracking-widest text-sm">
+           [ READ THE WHITEPAPER ]
+        </ShinyButton>
       </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-12 text-sm">
-        <div className="flex flex-col gap-4">
-          <h4 className="font-bold text-primary">Developers</h4>
-          <a href="https://docs.nooterra.ai" className="text-secondary hover:text-signal transition-colors">Documentation</a>
-          <a href="https://raw.githubusercontent.com/nooterra/nooterra-docs/main/docs/technical-spec.md" className="text-secondary hover:text-signal transition-colors">Technical Spec</a>
-          <a href="https://raw.githubusercontent.com/nooterra/nooterra-docs/main/docs/whitepaper.md" className="text-secondary hover:text-signal transition-colors">Whitepaper</a>
-        </div>
-        <div className="flex flex-col gap-4">
-          <h4 className="font-bold text-primary">Governance</h4>
-          <a href="https://github.com/nooterra" className="text-secondary hover:text-signal transition-colors">NIPs (coming)</a>
-          <a href="https://github.com/nooterra" className="text-secondary hover:text-signal transition-colors">Proposal Forum</a>
-        </div>
-        <div className="flex flex-col gap-4">
-          <h4 className="font-bold text-primary">Connect</h4>
-          <a href="https://github.com/nooterra" className="text-secondary hover:text-signal transition-colors">GitHub</a>
-          <a href="https://discord.gg" className="text-secondary hover:text-signal transition-colors">Discord</a>
-          <a href="https://x.com" className="text-secondary hover:text-signal transition-colors">Twitter</a>
-        </div>
+      <div className="pt-24 flex flex-col items-center gap-4 text-xs font-mono text-tertiary tracking-widest uppercase">
+         <div className="flex gap-8">
+            <a href="#" className="hover:text-white transition-colors">Twitter</a>
+            <a href="#" className="hover:text-white transition-colors">GitHub</a>
+            <a href="#" className="hover:text-white transition-colors">Discord</a>
+         </div>
+         <p>NOOTERRA LABS 2026</p>
       </div>
-    </div>
-    <div className="mt-20 text-center text-tertiary text-xs font-mono">
-      © 2025 NOOTERRA LABS. OPEN INFRASTRUCTURE.
     </div>
   </footer>
 );
