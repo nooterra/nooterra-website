@@ -1,12 +1,5 @@
 import React from "react";
 
-const TickerItem = ({ text }: { text: string }) => (
-  <div className="inline-flex items-center gap-4 mx-8 font-mono text-xs uppercase tracking-wider text-[#00FF94]/70">
-    <span className="text-settle opacity-50">{'>'}</span>
-    <span>{text}</span>
-  </div>
-);
-
 const transactions = [
   "Llama-3 leased compute [12ms ago]",
   "Medical-Agent bought dataset #892 [42ms ago]",
@@ -30,16 +23,14 @@ export const Economy = () => {
         </p>
       </div>
 
-      {/* Infinite Ticker - System Log Style */}
-      {/* Loop logic: 2 sets of items. Animation translates -50%. This creates a seamless loop. */}
-      <div className="w-full bg-[#050505] border-y border-white/5 py-4 overflow-hidden flex relative font-mono">
-         <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-void to-transparent z-10" />
-         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-void to-transparent z-10" />
-         
-         <div className="flex animate-[ticker_60s_linear_infinite] whitespace-nowrap">
-            {transactions.map((t, i) => <TickerItem key={`a-${i}`} text={t} />)}
-            {transactions.map((t, i) => <TickerItem key={`b-${i}`} text={t} />)}
-         </div>
+      {/* Static system log style list */}
+      <div className="w-full bg-[#050505] border-y border-white/5 py-6 px-6 font-mono text-xs uppercase tracking-wider text-[#00FF94]/70 space-y-3">
+        {transactions.map((t, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <span className="text-settle opacity-60">{'>'}</span>
+            <span>{t}</span>
+          </div>
+        ))}
       </div>
     </section>
   );

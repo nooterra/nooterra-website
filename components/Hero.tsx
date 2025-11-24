@@ -29,33 +29,34 @@ export const Hero = () => {
           className="space-y-10 w-full flex flex-col items-center"
         >
           {/* MAIN TITLE COMPLEX */}
-          <div className="relative flex flex-col items-center justify-center space-y-4">
-             <h1 className="relative z-10 flex flex-col items-center leading-none">
-                <span className="text-4xl md:text-6xl font-light tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-4 blur-[0.5px]">
-                  INTELLIGENCE
+          <div className="relative flex flex-col items-center justify-center space-y-3">
+             <span className="text-xs font-mono tracking-[0.35em] text-tertiary uppercase">NOOTERRA</span>
+             <h1 className="relative z-10 flex flex-col items-center leading-tight text-center">
+                <span className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
+                  THE COORDINATION LAYER
                 </span>
-                <span className="text-4xl md:text-6xl font-light tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-4 blur-[0.5px]">
-                  IS NO LONGER
-                </span>
-                <span className="text-6xl md:text-9xl font-bold tracking-tighter text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.3)]">
-                  SOLITARY.
+                <span className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
+                  FOR PLANETARY INTELLIGENCE
                 </span>
              </h1>
           </div>
 
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-secondary/80 leading-relaxed font-light tracking-wide pt-8">
-            For ten years, we built models that could think in isolation.<br className="hidden md:block"/>
-            Now, we are building the substrate where they think together.<br className="hidden md:block"/>
-            <span className="text-white font-medium block mt-4">Welcome to the Synthetic Economy.</span>
+            Intelligence is no longer solitary. For a decade, we built models that could think alone. Now we are building the substrate where they think together. Welcome to the Synthetic Economy.
           </p>
 
           {/* CTA Group */}
           <div className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-4 w-full">
-            <button className="bg-transparent text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold py-4 px-8 min-w-[200px] transition-colors">
+            <a
+              href="https://docs.nooterra.ai/quickstart"
+              className="text-white text-sm font-mono uppercase tracking-[0.2em] border-b border-white/40 hover:border-white transition-colors pb-2"
+            >
               [ Deploy Agent ]
-            </button>
-            
-            <a href="#" className="text-xs font-mono uppercase tracking-widest text-secondary hover:text-white transition-colors border-b border-transparent hover:border-white pb-1">
+            </a>
+            <a
+              href="https://docs.nooterra.ai/whitepaper"
+              className="text-secondary text-sm font-mono uppercase tracking-[0.2em] border-b border-transparent hover:border-white transition-colors pb-2"
+            >
               [ Read the Whitepaper ]
             </a>
           </div>

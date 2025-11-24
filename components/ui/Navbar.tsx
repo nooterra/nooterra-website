@@ -19,23 +19,32 @@ export const Navbar = () => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-secondary">
-          {["PROTOCOL", "EXPLORER", "RESEARCH", "DOCS"].map((item) => (
-            <a 
-              key={item} 
-              href="#" 
-              className="hover:text-white transition-colors relative group py-2"
-            >
-              {item}
-              <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
-            </a>
-          ))}
+          <a href="https://docs.nooterra.ai/whitepaper" className="hover:text-white transition-colors relative group py-2">
+            PROTOCOL
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
+          </a>
+          <a href="https://explore.nooterra.ai" className="hover:text-white transition-colors relative group py-2">
+            EXPLORER
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
+          </a>
+          <a href="https://docs.nooterra.ai/technical-spec" className="hover:text-white transition-colors relative group py-2">
+            RESEARCH
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
+          </a>
+          <a href="https://docs.nooterra.ai" className="hover:text-white transition-colors relative group py-2">
+            DOCS
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
+          </a>
         </div>
 
         {/* CTA */}
         <div className="hidden md:block">
-          <button className="bg-transparent text-white hover:bg-white/10 uppercase text-[10px] tracking-wider px-4 py-1.5 h-8 min-w-0 transition-colors">
-             [ Deploy Agent ]
-          </button>
+          <a
+            href="https://docs.nooterra.ai/quickstart"
+            className="text-white text-[10px] tracking-wider uppercase border-b border-white/30 hover:border-white transition-colors pb-1"
+          >
+            [ Deploy Agent ]
+          </a>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -47,19 +56,17 @@ export const Navbar = () => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-void border-b border-white/10 p-6 space-y-4 animate-in slide-in-from-top-4">
-           {["PROTOCOL", "EXPLORER", "RESEARCH", "DOCS"].map((item) => (
-            <a 
-              key={item} 
-              href="#" 
-              className="block text-sm font-mono text-secondary hover:text-white"
-            >
-              {item}
-            </a>
-          ))}
+           <a href="https://docs.nooterra.ai/whitepaper" className="block text-sm font-mono text-secondary hover:text-white">PROTOCOL</a>
+           <a href="https://explore.nooterra.ai" className="block text-sm font-mono text-secondary hover:text-white">EXPLORER</a>
+           <a href="https://docs.nooterra.ai/technical-spec" className="block text-sm font-mono text-secondary hover:text-white">RESEARCH</a>
+           <a href="https://docs.nooterra.ai" className="block text-sm font-mono text-secondary hover:text-white">DOCS</a>
            <div className="mt-4">
-              <button className="w-full bg-transparent text-white hover:bg-white/10 uppercase text-xs py-3 transition-colors">
+              <a
+                href="https://docs.nooterra.ai/quickstart"
+                className="w-full inline-block text-center bg-transparent text-white hover:bg-white/10 uppercase text-xs py-3 transition-colors border-b border-white/30"
+              >
                  [ Deploy Agent ]
-              </button>
+              </a>
            </div>
         </div>
       )}
