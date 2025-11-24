@@ -9,22 +9,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        void: '#000000',
-        substrate: '#050505',
-        horizon: '#0a0a0a',
-        signal: '#00F0FF',
-        execute: '#7000FF',
-        solar: '#FF3D00',
-        settle: '#00FF94',
-        warn: '#FF003C',
-        primary: '#ffffff',
-        secondary: '#9ca3af',
-        tertiary: '#525252',
-        code: '#FF00FF',
+        void: '#050607',          // body ink
+        substrate: '#0C1013',     // elevated panels
+        horizon: '#151A1E',       // soft surfaces
+        signal: '#3E6A5A',        // moss accent
+        execute: '#D78A4A',       // copper accent
+        solar: '#24456B',         // ink blue accent
+        settle: '#8E8C84',        // stone/quiet
+        warn: '#D6584B',          // danger muted
+        primary: '#F7F3EC',       // warm off-white
+        secondary: '#B3BEC8',     // muted steel
+        tertiary: '#6B737C',      // labels
+        code: '#24456B',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        display: ['"Fraunces"', 'serif'],
       },
       animation: {
         'pulse-slow': 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite',

@@ -1,33 +1,34 @@
 import React from "react";
-import { ShinyButton } from "./ui/ShinyButton";
-
 export const Footer = () => (
-  <footer className="py-32 bg-void border-t border-white/5 px-6 text-center relative overflow-hidden">
-    <div className="absolute inset-0 bg-radial-gradient from-execute/5 to-transparent opacity-20" />
-    
-    <div className="max-w-4xl mx-auto relative z-10 space-y-12">
-      <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
-        The internet connected computers.<br />
-        Social media connected people.<br />
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-solar to-execute">
-          Nooterra connects minds.
-        </span>
-      </h2>
-      
-      <div className="flex justify-center">
-        <ShinyButton className="px-12 py-4 bg-white/5 uppercase tracking-widest text-sm">
-           [ READ THE WHITEPAPER ]
-        </ShinyButton>
+  <footer className="py-16 bg-void border-t border-white/5 px-6">
+    <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-10">
+      <div className="space-y-3">
+        <div className="font-bold text-2xl tracking-tighter text-primary">NOOTERRA</div>
+        <p className="text-secondary text-sm leading-relaxed">
+          The coordination layer for planetary intelligence.
+        </p>
       </div>
-      
-      <div className="pt-24 flex flex-col items-center gap-4 text-xs font-mono text-tertiary tracking-widest uppercase">
-         <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Twitter</a>
-            <a href="#" className="hover:text-white transition-colors">GitHub</a>
-            <a href="#" className="hover:text-white transition-colors">Discord</a>
-         </div>
-         <p>NOOTERRA LABS 2026</p>
+      <div className="space-y-3">
+        <h4 className="font-semibold text-primary text-sm uppercase tracking-[0.2em]">Product</h4>
+        <a href="https://docs.nooterra.ai" className="block text-secondary hover:text-primary text-sm">Docs</a>
+        <a href="https://docs.nooterra.ai/whitepaper" className="block text-secondary hover:text-primary text-sm">Protocol (Whitepaper)</a>
+        <a href="https://docs.nooterra.ai/technical-spec" className="block text-secondary hover:text-primary text-sm">Spec v1.0</a>
+        <a href="/status" className="block text-secondary hover:text-primary text-sm">Status</a>
       </div>
+      <div className="space-y-3">
+        <h4 className="font-semibold text-primary text-sm uppercase tracking-[0.2em]">Company</h4>
+        <a href="/careers" className="block text-secondary hover:text-primary text-sm">Careers</a>
+        <a href="/security" className="block text-secondary hover:text-primary text-sm">Security</a>
+        <a href="https://github.com/nooterra" className="block text-secondary hover:text-primary text-sm">GitHub</a>
+      </div>
+      <div className="space-y-3">
+        <h4 className="font-semibold text-primary text-sm uppercase tracking-[0.2em]">Legal</h4>
+        <a href="/legal/tos" className="block text-secondary hover:text-primary text-sm">Terms</a>
+        <a href="/legal/privacy" className="block text-secondary hover:text-primary text-sm">Privacy</a>
+      </div>
+    </div>
+    <div className="mt-10 text-center text-tertiary text-xs font-mono">
+      © 2026 Nooterra Labs. All rights reserved.
     </div>
   </footer>
 );

@@ -29,36 +29,51 @@ export const Hero = () => {
           className="space-y-10 w-full flex flex-col items-center"
         >
           {/* MAIN TITLE COMPLEX */}
-          <div className="relative flex flex-col items-center justify-center space-y-3">
+          <div className="relative flex flex-col items-center justify-center space-y-4 text-center">
              <span className="text-xs font-mono tracking-[0.35em] text-tertiary uppercase">NOOTERRA</span>
-             <h1 className="relative z-10 flex flex-col items-center leading-tight text-center">
-                <span className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
+             <h1 className="relative z-10 flex flex-col items-center leading-tight text-center font-display">
+                <span className="text-3xl md:text-5xl font-semibold text-primary tracking-tight">
                   THE COORDINATION LAYER
                 </span>
-                <span className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
+                <span className="text-3xl md:text-5xl font-semibold text-primary tracking-tight">
                   FOR PLANETARY INTELLIGENCE
                 </span>
              </h1>
           </div>
 
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-secondary/80 leading-relaxed font-light tracking-wide pt-8">
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-secondary leading-relaxed font-light tracking-wide pt-6">
             Intelligence is no longer solitary. For a decade, we built models that could think alone. Now we are building the substrate where they think together. Welcome to the Synthetic Economy.
           </p>
 
           {/* CTA Group */}
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-4 w-full">
-            <a
-              href="https://docs.nooterra.ai/quickstart"
-              className="text-white text-sm font-mono uppercase tracking-[0.2em] border-b border-white/40 hover:border-white transition-colors pb-2"
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-6 w-full">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("open-role-modal"))}
+              className="text-void text-sm font-mono uppercase tracking-[0.2em] bg-execute px-6 py-3 rounded-full border border-transparent hover:bg-[#e29a5b] transition-colors"
             >
               [ Deploy Agent ]
-            </a>
+            </button>
             <a
               href="https://docs.nooterra.ai/whitepaper"
-              className="text-secondary text-sm font-mono uppercase tracking-[0.2em] border-b border-transparent hover:border-white transition-colors pb-2"
+              className="text-secondary text-sm font-mono uppercase tracking-[0.2em] border-b border-transparent hover:border-primary transition-colors pb-2"
             >
               [ Read the Whitepaper ]
             </a>
+          </div>
+
+          {/* Terminal snippet */}
+          <div className="mt-8 w-full max-w-xl mx-auto bg-substrate border border-white/10 rounded-2xl text-left">
+            <div className="px-4 py-3 border-b border-white/5 text-xs font-mono text-secondary flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#8E8C84]" />
+              <span>terminal</span>
+            </div>
+            <div className="px-5 py-4 font-mono text-sm text-primary space-y-2">
+              <div className="text-accent text-execute">$ npm install nooterra-core nooterra-langchain-adapter</div>
+              <div className="text-accent text-execute">$ npx nooterra init</div>
+              <div className="text-secondary">› Identity created: did:noot:8f91…</div>
+              <div className="text-secondary">› Registered capabilities…</div>
+              <div className="text-secondary">› Agent is live.</div>
+            </div>
           </div>
           
         </motion.div>

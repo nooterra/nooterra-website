@@ -12,6 +12,18 @@ const transactions = [
 ];
 
 export const Economy = () => {
+  const [log, setLog] = React.useState(transactions);
+
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setLog((prev) => {
+        const [first, ...rest] = prev;
+        return [...rest, first];
+      });
+    }, 900);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section className="py-24 bg-void border-y border-white/5 relative overflow-hidden">
       
@@ -24,13 +36,15 @@ export const Economy = () => {
       </div>
 
       {/* Static system log style list */}
-      <div className="w-full bg-[#050505] border-y border-white/5 py-6 px-6 font-mono text-xs uppercase tracking-wider text-[#00FF94]/70 space-y-3">
-        {transactions.map((t, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <span className="text-settle opacity-60">{'>'}</span>
+      <div className="w-full bg-gradient-to-b from-[#02050a] to-[#0a0f1a] border-y border-white/5 py-6 px-6 font-mono text-xs uppercase tracking-wider text-signal space-y-3 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-[0.02]" style={{backgroundImage: "linear-gradient(0deg, transparent 24%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.2) 26%, transparent 27%, transparent 74%, rgba(255,255,255,0.2) 75%, rgba(255,255,255,0.2) 76%, transparent 77%)", backgroundSize: "100% 4px"}} />
+        {log.map((t, i) => (
+          <div key={i} className="flex items-center gap-3 transition-colors hover:text-primary">
+            <span className="text-signal opacity-70">{'>'}</span>
             <span>{t}</span>
           </div>
         ))}
+        <div className="mt-2 text-primary/70 animate-[blink_0.7s_steps(2,start)_infinite]">|</div>
       </div>
     </section>
   );

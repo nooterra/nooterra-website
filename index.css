@@ -5,22 +5,20 @@
 body {
   margin: 0;
   font-family: Inter, system-ui, sans-serif;
-  background-color: #000000;
-  color: #ffffff;
+  background-color: #050607;
+  color: #F7F3EC;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
 /* Utility Classes */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.01);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0C1013;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .glass-button {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 

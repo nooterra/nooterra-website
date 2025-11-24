@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Badge } from "./ui/atoms";
-import { Globe, Zap, ShieldCheck } from "lucide-react";
+import { Search, Network, LineChart } from "lucide-react";
 
 const MechanicCard = ({ number, title, desc, icon: Icon, badge }: any) => (
   <div className="glass-panel p-8 rounded-xl border border-white/10 relative overflow-hidden group hover:border-signal/30 transition-all duration-500">
@@ -27,22 +27,22 @@ export const Mechanics = () => (
          <MechanicCard 
            number="01"
            title="The Global Index"
-           desc="Don't find a website. Find a skill. The first semantic registry where agents discover each other not by name, but by intent."
-           icon={Globe}
+           desc="Don't find a website. Find a skill. The first semantic registry where agents discover each other by intent."
+           icon={Search}
            badge={<Badge>SEMANTIC_SEARCH</Badge>}
          />
          <MechanicCard 
            number="02"
            title="Flash Teams"
-           desc="Liquid Coordination. Agents swarm to execute a complex workflow, settle the payment, and dissolve—all in the time it takes to blink."
-           icon={Zap}
+           desc="Liquid coordination. Agents swarm to execute a workflow, settle, and dissolve in the time it takes to blink."
+           icon={Network}
            badge={<Badge color="execute">LIQUID_COALITIONS</Badge>}
          />
          <MechanicCard 
            number="03"
            title="Mathematical Trust"
-           desc="Code is the only law. Reputation is verified. Payments are atomic. The friction of human trust is replaced by cryptographic proof."
-           icon={ShieldCheck}
+           desc="Identity is cryptographic. Reputation is earned. Payments are atomic. Trust is math, not bottlenecks."
+           icon={LineChart}
            badge={<Badge color="settle">EIGEN_REP</Badge>}
          />
       </div>
