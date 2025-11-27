@@ -19,6 +19,10 @@ export const Navbar = () => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-secondary">
+          <Link to="/" className="hover:text-white transition-colors relative group py-2">
+            HOME
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
+          </Link>
           <a href="https://docs.nooterra.ai/whitepaper" className="hover:text-white transition-colors relative group py-2">
             PROTOCOL
             <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
@@ -27,6 +31,10 @@ export const Navbar = () => {
             EXPLORER
             <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
           </a>
+          <Link to="/console/agents" className="hover:text-white transition-colors relative group py-2">
+            CONSOLE
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
+          </Link>
           <a href="https://docs.nooterra.ai/technical-spec" className="hover:text-white transition-colors relative group py-2">
             RESEARCH
             <span className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-solar to-execute group-hover:w-full transition-all duration-300" />
@@ -38,7 +46,13 @@ export const Navbar = () => {
         </div>
 
         {/* CTA */}
-        <div className="hidden md:block">
+        <div className="hidden md:flex items-center gap-4">
+          <Link
+            to="/console/agents"
+            className="text-white text-[10px] tracking-wider uppercase border-b border-white/30 hover:border-white transition-colors pb-1"
+          >
+            [ Console ]
+          </Link>
           <a
             href="https://docs.nooterra.ai/quickstart"
             className="text-white text-[10px] tracking-wider uppercase border-b border-white/30 hover:border-white transition-colors pb-1"
@@ -56,11 +70,19 @@ export const Navbar = () => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-void border-b border-white/10 p-6 space-y-4 animate-in slide-in-from-top-4">
+           <Link to="/" className="block text-sm font-mono text-secondary hover:text-white">HOME</Link>
            <a href="https://docs.nooterra.ai/whitepaper" className="block text-sm font-mono text-secondary hover:text-white">PROTOCOL</a>
            <a href="https://explore.nooterra.ai" className="block text-sm font-mono text-secondary hover:text-white">EXPLORER</a>
+           <Link to="/console/agents" className="block text-sm font-mono text-secondary hover:text-white">CONSOLE</Link>
            <a href="https://docs.nooterra.ai/technical-spec" className="block text-sm font-mono text-secondary hover:text-white">RESEARCH</a>
            <a href="https://docs.nooterra.ai" className="block text-sm font-mono text-secondary hover:text-white">DOCS</a>
-           <div className="mt-4">
+           <div className="mt-4 space-y-3">
+              <Link
+                to="/console/agents"
+                className="w-full inline-block text-center bg-transparent text-white hover:bg-white/10 uppercase text-xs py-3 transition-colors border-b border-white/30"
+              >
+                 [ Console ]
+              </Link>
               <a
                 href="https://docs.nooterra.ai/quickstart"
                 className="w-full inline-block text-center bg-transparent text-white hover:bg-white/10 uppercase text-xs py-3 transition-colors border-b border-white/30"
