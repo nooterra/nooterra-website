@@ -9,12 +9,14 @@ import Workflows from "./views/Workflows";
 import WorkflowDetail from "./views/WorkflowDetail";
 import Explore from "./views/Explore";
 import Home from "./views/Home";
+import { Navigate } from "react-router-dom";
 
 export const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Home />} />
     <Route path="/explore" element={<Explore />} />
     <Route path="/console" element={<ConsoleLayout />}>
+      <Route index element={<Navigate to="/console/agents" replace />} />
       <Route path="agents" element={<Agents />} />
       <Route path="agents/:did" element={<AgentDetail />} />
       <Route path="tasks" element={<Tasks />} />
