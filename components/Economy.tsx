@@ -15,12 +15,76 @@ export const Economy = () => {
   const [log, setLog] = React.useState(transactions);
 
   React.useEffect(() => {
+    // fallback loop to keep motion if SSE unavailable
     const id = setInterval(() => {
       setLog((prev) => {
         const [first, ...rest] = prev;
         return [...rest, first];
       });
     }, 900);
+
+    // Live event stream from coordinator
+    if (typeof window !== "undefined") {
+      const coordUrl = (import.meta as any).env?.VITE_COORD_URL || "https://coord.nooterra.ai";
+      try {
+        const es = new EventSource(`${coordUrl}/v1/events/stream`);
+        const pushLine = (line: string) => {
+          setLog((prev) => [line, ...prev].slice(0, transactions.length));
+        };
+        const handlers: Record<string, (ev: MessageEvent) => void> = {
+          TASK_PUBLISHED: (ev) => {
+            try {
+              const data = JSON.parse(ev.data);
+              pushLine(`Task ${data.taskId ?? ""} published`);
+            } catch {
+              pushLine("Task published");
+            }
+          },
+          AGENT_BID: (ev) => {
+            try {
+              const data = JSON.parse(ev.data);
+              pushLine(`Bid ${data.agentDid ?? ""} on ${data.taskId ?? ""}`);
+            } catch {
+              pushLine("Bid received");
+            }
+          },
+          TASK_SETTLED: (ev) => {
+            try {
+              const data = JSON.parse(ev.data);
+              pushLine(`Settled ${data.taskId ?? ""}`);
+            } catch {
+              pushLine("Settlement finalized");
+            }
+          },
+          AGENT_HEARTBEAT: (ev) => {
+            try {
+              const data = JSON.parse(ev.data);
+              pushLine(`Agent ${data.agentDid ?? ""} live`);
+            } catch {
+              pushLine("Agent heartbeat");
+            }
+          },
+          TASK_RESULT_INVALID: (ev) => {
+            try {
+              const data = JSON.parse(ev.data);
+              pushLine(`Result flagged ${data.taskId ?? ""}`);
+            } catch {
+              pushLine("Result flagged");
+            }
+          },
+        };
+        Object.keys(handlers).forEach((evt) => es.addEventListener(evt, handlers[evt]));
+        es.onerror = () => {
+          es.close();
+        };
+        return () => {
+          es.close();
+          clearInterval(id);
+        };
+      } catch {
+        // ignore, fallback to rotation
+      }
+    }
     return () => clearInterval(id);
   }, []);
 

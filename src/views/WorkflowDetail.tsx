@@ -37,6 +37,11 @@ export default function WorkflowDetail() {
         <div>
           <h2 className="text-lg font-semibold">Workflow {workflow.id}</h2>
           <p className="text-secondary text-sm">Intent: {workflow.intent || "—"}</p>
+          <p className="text-secondary text-sm">
+            Payer: {workflow.payer_did || "—"} · Budget:{" "}
+            {workflow.max_cents != null ? `${workflow.max_cents}¢` : "—"} · Spent:{" "}
+            {workflow.spent_cents != null ? `${workflow.spent_cents}¢` : "0¢"}
+          </p>
         </div>
         <div className="text-sm text-secondary">Status: {workflow.status}</div>
       </div>
@@ -47,7 +52,9 @@ export default function WorkflowDetail() {
             <tr>
               <th className="text-left px-4 py-3">Node</th>
               <th className="text-left px-4 py-3">Capability</th>
+              <th className="text-left px-4 py-3">Agent</th>
               <th className="text-left px-4 py-3">Status</th>
+              <th className="text-left px-4 py-3">Verify</th>
               <th className="text-left px-4 py-3">Attempts</th>
               <th className="text-left px-4 py-3">Started</th>
               <th className="text-left px-4 py-3">Finished</th>
@@ -58,7 +65,11 @@ export default function WorkflowDetail() {
               <tr key={n.name} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <td className="px-4 py-3 font-mono text-xs text-primary">{n.name}</td>
                 <td className="px-4 py-3 text-secondary text-sm">{n.capability_id}</td>
+                <td className="px-4 py-3 text-secondary text-sm">{n.agent_did || "—"}</td>
                 <td className="px-4 py-3 text-secondary text-sm">{n.status}</td>
+                <td className="px-4 py-3 text-secondary text-sm">
+                  {n.requires_verification ? n.verification_status || "pending" : "n/a"}
+                </td>
                 <td className="px-4 py-3 text-secondary text-sm">{n.attempts}/{n.max_attempts}</td>
                 <td className="px-4 py-3 text-secondary text-sm">{n.started_at || "—"}</td>
                 <td className="px-4 py-3 text-secondary text-sm">{n.finished_at || "—"}</td>

@@ -36,6 +36,7 @@ export default function Agents() {
             <tr>
               <th className="text-left px-4 py-3">DID</th>
               <th className="text-left px-4 py-3">Endpoint</th>
+              <th className="text-left px-4 py-3">Signed</th>
               <th className="text-left px-4 py-3">Reputation</th>
               <th className="text-left px-4 py-3">Success</th>
               <th className="text-left px-4 py-3">Failed</th>
@@ -52,6 +53,7 @@ export default function Agents() {
                   </Link>
                 </td>
                 <td className="px-4 py-3 text-secondary text-xs break-all">{a.endpoint}</td>
+                <td className="px-4 py-3 text-secondary text-sm">{a.signed ? "yes" : "no"}</td>
                 <td className="px-4 py-3 text-secondary text-sm">{Number(a.reputation ?? 0).toFixed(3)}</td>
                 <td className="px-4 py-3 text-secondary text-sm">{a.tasks_success ?? 0}</td>
                 <td className="px-4 py-3 text-secondary text-sm">{a.tasks_failed ?? 0}</td>
