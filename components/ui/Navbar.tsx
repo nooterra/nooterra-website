@@ -8,13 +8,11 @@ export const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-nav transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-2 group cursor-pointer">
-          <div className="w-8 h-8 rounded bg-gradient-to-tr from-void to-substrate border border-white/10 flex items-center justify-center relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-tr from-solar/20 to-execute/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-             <div className="w-3 h-3 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)] z-10" />
+        {/* Left stub / orb only */}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-solar/30 via-execute/20 to-transparent border border-white/30 flex items-center justify-center relative overflow-hidden">
+            <div className="w-2.5 h-2.5 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.7)]" />
           </div>
-          <span className="font-bold text-lg tracking-tighter text-white">NOOTERRA</span>
         </div>
 
         {/* Desktop Links */}
