@@ -9,6 +9,7 @@ import Workflows from "./views/Workflows";
 import WorkflowDetail from "./views/WorkflowDetail";
 import Explore from "./views/Explore";
 import Home from "./views/Home";
+import Account from "./views/Account";
 import { Navigate } from "react-router-dom";
 
 export const AppRoutes = () => (
@@ -23,6 +24,7 @@ export const AppRoutes = () => (
       <Route path="workflows" element={<Workflows />} />
       <Route path="workflows/:id" element={<WorkflowDetail />} />
       <Route path="credits" element={<Credits />} />
+      <Route path="account" element={<Account />} />
     </Route>
   </Routes>
 );

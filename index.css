@@ -1,11 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   margin: 0;
-  font-family: Inter, system-ui, sans-serif;
-  background-color: #050607;
+  font-family: 'Space Grotesk', Inter, system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 20% 20%, #0f1724 0%, #050607 40%),
+              radial-gradient(circle at 80% 10%, #12233b 0%, #050607 45%),
+              #050607;
   color: #F7F3EC;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -13,13 +17,34 @@ body {
 
 /* Utility Classes */
 .glass-panel {
-  background: #0C1013;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(16, 22, 29, 0.75), rgba(12, 16, 19, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+  backdrop-filter: blur(16px);
 }
 
 .glass-button {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  backdrop-filter: blur(10px);
+}
+
+.border-gradient {
+  position: relative;
+}
+.border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(215,138,74,0.6), rgba(62,106,90,0.6), rgba(36,69,107,0.6));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .text-glow {

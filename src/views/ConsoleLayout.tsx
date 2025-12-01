@@ -9,6 +9,7 @@ export default function ConsoleLayout() {
     { label: "Tasks", to: "/console/tasks" },
     { label: "Workflows", to: "/console/workflows" },
     { label: "Credits", to: "/console/credits" },
+    { label: "Account", to: "/console/account" },
   ];
   return (
     <div className="min-h-screen bg-void text-primary">

@@ -5,6 +5,7 @@ const config: Config = {
     './index.html',
     './App.tsx',
     './components/**/*.{js,ts,jsx,tsx}',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -23,15 +24,16 @@ const config: Config = {
         code: '#24456B',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-        display: ['"Fraunces"', 'serif'],
+        sans: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+        display: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'pulse-slow': 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         float: 'float 6s ease-in-out infinite',
         grain: 'grain 8s steps(10) infinite',
         beam: 'beam 2s linear infinite',
+        aurora: 'aurora 18s ease-in-out infinite alternate',
       },
       keyframes: {
         float: {
@@ -53,6 +55,11 @@ const config: Config = {
         beam: {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
+        },
+        aurora: {
+          '0%': { transform: 'rotate(0deg) translate3d(0,0,0)' },
+          '50%': { transform: 'rotate(10deg) translate3d(4%, -2%, 0)' },
+          '100%': { transform: 'rotate(-8deg) translate3d(-3%, 3%, 0)' },
         },
       },
     },
