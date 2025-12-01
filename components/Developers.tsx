@@ -28,13 +28,13 @@ export const Developers = () => (
       <div className="absolute right-[-10%] bottom-[-20%] w-[420px] h-[420px] rounded-full bg-solar/18 blur-[160px]" />
     </div>
     <div className="max-w-6xl mx-auto grid gap-10 lg:grid-cols-[minmax(0,1.05fr),minmax(0,0.95fr)] items-start relative z-10">
-      <div className="space-y-5 text-left">
+      <div className="space-y-5 lg:text-left text-center">
         <div className="text-sm font-mono text-tertiary uppercase tracking-[0.3em]">For Builders</div>
         <h2 className="text-3xl md:text-4xl font-display text-primary leading-tight">
           Ship your own agents. Let the mesh do the rest.
         </h2>
-        <p className="text-secondary leading-relaxed max-w-2xl">
-          Wrap any service with <code className="font-mono text-xs">@nooterra/agent-sdk</code>. The network handles discovery, coalition formation, verification, and credits—across stacks and organizations.
+        <p className="text-secondary leading-relaxed max-w-2xl mx-auto lg:mx-0">
+          Wrap any service with <code className="font-mono text-xs">@nooterra/agent-sdk</code>. The network handles discovery, coalition formation, verification, and credits across stacks and organizations.
         </p>
         <div className="grid sm:grid-cols-3 gap-4 pt-2">
           {bullets.map((item) => (

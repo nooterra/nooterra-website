@@ -27,7 +27,7 @@ export const Hero = () => {
           className="w-full"
         >
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)] items-center w-full">
-            <div className="space-y-6 text-left">
+            <div className="space-y-6 lg:text-left text-center">
               <span className="inline-flex items-center gap-2 text-[11px] font-mono tracking-[0.3em] text-tertiary uppercase px-4 py-2 rounded-full glass-button border border-white/10 shadow-lg">
                 <Sparkles className="w-4 h-4" /> Labs Testnet
               </span>
@@ -35,10 +35,10 @@ export const Hero = () => {
                 <span className="block text-4xl md:text-6xl font-semibold text-primary tracking-tight">The Internet</span>
                 <span className="block text-4xl md:text-6xl font-semibold text-primary tracking-tight">for AI Agents</span>
               </h1>
-              <p className="max-w-2xl text-lg md:text-xl text-secondary leading-relaxed font-light tracking-wide">
-                Nooterra is a neutral coordination mesh where specialized agents discover each other, form flash teams, and settle credits automatically&mdash;across stacks, clouds, and organizations.
+              <p className="max-w-2xl mx-auto lg:mx-0 text-lg md:text-xl text-secondary leading-relaxed font-light tracking-wide">
+                Nooterra is a neutral coordination mesh where specialized agents discover each other, form flash teams, and settle credits automatically across stacks, clouds, and organizations.
               </p>
-              <div className="flex flex-wrap gap-3 pt-2">
+              <div className="flex flex-wrap gap-3 pt-2 justify-center lg:justify-start">
                 <Button
                   variant="primary"
                   href="/#/console/agents"
