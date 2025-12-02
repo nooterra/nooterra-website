@@ -30,6 +30,7 @@ import Integrations from "./views/dev/Integrations";
 import ImportFromGitHub from "./views/dev/ImportFromGitHub";
 import ImportHuggingFace from "./views/dev/ImportHuggingFace";
 import SpecializedAgents from "./views/dev/SpecializedAgents";
+import Playground from "./views/Playground";
 
 // Organization pages
 import OrgLayout from "./views/org/OrgLayout";
@@ -54,6 +55,8 @@ export const AppRoutes = () => (
     <Route path="/" element={<Home />} />
     <Route path="/explore" element={<Explore />} />
     <Route path="/marketplace" element={<Marketplace />} />
+    <Route path="/playground" element={<Playground />} />
+    <Route path="/try" element={<Playground />} />
     <Route path="/network" element={<NetworkDashboard />} />
     
     {/* Auth routes */}

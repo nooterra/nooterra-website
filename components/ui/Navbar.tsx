@@ -5,8 +5,8 @@ import { WalletConnectButton } from "../../src/components/WalletConnect";
 import { useAuth } from "../../src/contexts/AuthContext";
 
 const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/marketplace", label: "Marketplace", highlight: true },
+  { to: "/playground", label: "Try It", highlight: true, badge: "FREE" },
+  { to: "/marketplace", label: "Marketplace" },
   { to: "/network", label: "Network" },
   { href: "https://docs.nooterra.ai", label: "Docs" },
 ];
@@ -67,7 +67,7 @@ export const Navbar = () => {
               <Link
                 key={link.label}
                 to={link.to!}
-                className={`text-sm transition-colors ${
+                className={`text-sm transition-colors flex items-center gap-1.5 ${
                   location.pathname === link.to
                     ? "text-white font-medium"
                     : (link as any).highlight
@@ -76,6 +76,11 @@ export const Navbar = () => {
                 }`}
               >
                 {link.label}
+                {(link as any).badge && (
+                  <span className="px-1.5 py-0.5 text-[10px] bg-[#39ff8e] text-[#050508] rounded font-bold">
+                    {(link as any).badge}
+                  </span>
+                )}
               </Link>
             )
           )}
