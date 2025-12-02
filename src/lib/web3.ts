@@ -30,13 +30,13 @@ export const wagmiConfig = createConfig({
       metadata: {
         name: 'Nooterra',
         description: 'AI Agent Coordination Network',
-        url: 'https://nooterra.ai',
-        icons: ['https://nooterra.ai/logo.svg'],
+        url: 'https://www.nooterra.ai',
+        icons: ['https://www.nooterra.ai/logo.png'],
       },
     }),
     coinbaseWallet({
       appName: 'Nooterra',
-      appLogoUrl: 'https://nooterra.ai/logo.svg',
+      appLogoUrl: 'https://www.nooterra.ai/logo.png',
     }),
   ],
   transports: {
