@@ -111,40 +111,53 @@ export default function Playground() {
         ? `Available specialized agents:\n${availableAgents.slice(0, 5).map((a: any) => 
             `- ${a.did.split(':').pop()}: ${a.description} (capability: ${a.capabilityId})`
           ).join('\n')}`
-        : "No specialized agents found for this request.";
+        : "";
       
       // Step 4: Update status - found agents
-      const foundCount = availableAgents.length;
       setMessages((prev) => 
         prev.map((m) => 
           m.id === processingId 
-            ? { ...m, content: foundCount > 0 
-                ? `🤖 Found ${foundCount} potential agents. Orchestrating response...` 
-                : "🤖 Connecting to AI assistant..." 
-              }
+            ? { ...m, content: "🤖 Processing..." }
             : m
         )
       );
       
-      // Step 5: Build orchestration prompt
-      const orchestrationPrompt = `You are Nooterra's AI orchestrator. Your job is to help users by either:
-1. Answering directly if you can
-2. Explaining which specialized agents could help and what input they need
-3. Guiding the user to provide the right information for specialized tasks
+      // Step 5: Build conversation history for context
+      const conversationHistory = messages
+        .filter(m => m.role === "user" || m.role === "assistant")
+        .slice(-10) // Last 10 messages for context
+        .map(m => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+        .join("\n\n");
+      
+      // Step 6: Build smart orchestration prompt with memory
+      const orchestrationPrompt = `You are Nooterra's intelligent AI orchestrator with access to specialized agents. You MUST remember the conversation context and stay on topic.
 
-User request: "${userMessage.content}"
+CONVERSATION HISTORY:
+${conversationHistory || "(This is the start of the conversation)"}
 
-${agentContext}
+CURRENT USER MESSAGE: "${userMessage.content}"
 
-Important guidelines:
-- If the user needs a specialized capability (protein folding, image generation, code, translation, etc.), explain which agent can help and what specific input format is needed.
-- For protein structure: ESMFold needs an amino acid sequence (e.g., "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQFEVVHSLAKWKRQQIAAALEHHHHHH")
-- For image generation: Stable Diffusion needs a detailed text description
-- For code: CodeLlama needs a clear problem description or code to review
-- For translation: OPUS needs source text and target language
-- Be helpful and guide users toward successful agent interactions.
+${agentContext ? `\nAVAILABLE SPECIALIZED AGENTS:\n${agentContext}` : ""}
 
-Respond naturally and helpfully:`;
+YOUR CAPABILITIES:
+1. ESMFold Agent - Predicts 3D protein structures from amino acid sequences
+   Example sequence: MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQFEVVHSLAKWKRQQIAAALEHHHHHH
+   Another example (Insulin B chain): FVNQHLCGSHLVEALYLVCGERGFFYTPKT
+   Another example (Green Fluorescent Protein fragment): MSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTFSYGVQCFSRYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRIELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQNTPIGDGPVLLPDNHYLSTQSALSKDPNEKRDHMVLLEFVTAAGITHGMDELYK
+
+2. Stable Diffusion XL - Generates images from text descriptions
+3. CodeLlama - Generates and explains code
+4. OPUS Translator - Translates between languages
+5. BART Summarizer - Summarizes long text
+
+CRITICAL RULES:
+- ALWAYS remember what the user asked before. If they asked about proteins, stay on that topic.
+- If user asks for an example, PROVIDE ONE IMMEDIATELY - don't ask more questions.
+- If user asks you to generate/create something, DO IT with the tools available.
+- Be proactive and helpful - anticipate what the user needs.
+- When discussing protein structures, always offer example sequences they can use.
+
+Now respond to the user's current message while maintaining full context of the conversation:`;
 
       // Step 6: Call orchestrator (Hermes) with context
       const response = await fetch(`${COORD_URL}/v1/workflows/publish`, {
