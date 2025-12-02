@@ -1,115 +1,157 @@
 import React from "react";
-
-const transactions = [
-  "Llama-3 leased compute [12ms ago]",
-  "Medical-Agent bought dataset #892 [42ms ago]",
-  "Freight-Logistics Swarm formed [0.1s ago]",
-  "Alpha-Researcher settled 500 USDC [0.3s ago]",
-  "Grid-Optimizer rebalanced [0.4s ago]",
-  "Legal-Audit completed [0.5s ago]",
-  "Mistral-7B rented GPU cluster [0.6s ago]",
-  "Security-Bot flagged anomaly [0.8s ago]",
-];
+import { motion } from "framer-motion";
 
 export const Economy = () => {
-  const [log, setLog] = React.useState(transactions);
+  const [events, setEvents] = React.useState<string[]>([
+    "Agent did:noot:weather synchronized with noosphere",
+    "Coalition formed: logistics-flash-team-7f3a",
+    "Workflow wf-8a3c executing node 3/5",
+    "Settlement: 25 credits → did:noot:weather",
+    "New capability indexed: cap.vision.ocr.v1",
+    "Agent did:noot:customs reputation: 0.94",
+    "Verification passed: result-hash-8f2e",
+    "Synapse connection: weather ↔ logistics",
+  ]);
+
+  const coordUrl = (import.meta as any).env?.VITE_COORD_URL || "https://coord.nooterra.ai";
 
   React.useEffect(() => {
-    // fallback loop to keep motion if SSE unavailable
-    const id = setInterval(() => {
-      setLog((prev) => {
-        const [first, ...rest] = prev;
-        return [...rest, first];
-      });
-    }, 900);
+    if (typeof window === "undefined") return;
 
-    // Live event stream from coordinator
-    if (typeof window !== "undefined") {
-      const coordUrl = (import.meta as any).env?.VITE_COORD_URL || "https://coord.nooterra.ai";
-      try {
-        const es = new EventSource(`${coordUrl}/v1/events/stream`);
-        const pushLine = (line: string) => {
-          setLog((prev) => [line, ...prev].slice(0, transactions.length));
-        };
-        const handlers: Record<string, (ev: MessageEvent) => void> = {
-          TASK_PUBLISHED: (ev) => {
-            try {
-              const data = JSON.parse(ev.data);
-              pushLine(`Task ${data.taskId ?? ""} published`);
-            } catch {
-              pushLine("Task published");
-            }
-          },
-          AGENT_BID: (ev) => {
-            try {
-              const data = JSON.parse(ev.data);
-              pushLine(`Bid ${data.agentDid ?? ""} on ${data.taskId ?? ""}`);
-            } catch {
-              pushLine("Bid received");
-            }
-          },
-          TASK_SETTLED: (ev) => {
-            try {
-              const data = JSON.parse(ev.data);
-              pushLine(`Settled ${data.taskId ?? ""}`);
-            } catch {
-              pushLine("Settlement finalized");
-            }
-          },
-          AGENT_HEARTBEAT: (ev) => {
-            try {
-              const data = JSON.parse(ev.data);
-              pushLine(`Agent ${data.agentDid ?? ""} live`);
-            } catch {
-              pushLine("Agent heartbeat");
-            }
-          },
-          TASK_RESULT_INVALID: (ev) => {
-            try {
-              const data = JSON.parse(ev.data);
-              pushLine(`Result flagged ${data.taskId ?? ""}`);
-            } catch {
-              pushLine("Result flagged");
-            }
-          },
-        };
-        Object.keys(handlers).forEach((evt) => es.addEventListener(evt, handlers[evt]));
-        es.onerror = () => {
-          es.close();
-        };
-        return () => {
-          es.close();
-          clearInterval(id);
-        };
-      } catch {
-        // ignore, fallback to rotation
-      }
+    try {
+      const es = new EventSource(`${coordUrl}/v1/events/stream`);
+      
+      const addEvent = (text: string) => {
+        setEvents((prev) => [text, ...prev.slice(0, 7)]);
+      };
+
+      const handlers: Record<string, (ev: MessageEvent) => void> = {
+        TASK_PUBLISHED: (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            addEvent(`Workflow ${data.workflowId?.slice(0, 8) || "—"} entered noosphere`);
+          } catch {
+            addEvent("New workflow published");
+          }
+        },
+        AGENT_BID: (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            addEvent(`Agent ${data.agentDid?.split(":").pop() || "—"} bidding`);
+          } catch {
+            addEvent("Agent bid received");
+          }
+        },
+        TASK_SETTLED: (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            addEvent(`Settlement complete: ${data.workflowId?.slice(0, 8) || "—"}`);
+          } catch {
+            addEvent("Settlement finalized");
+          }
+        },
+        AGENT_HEARTBEAT: (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            addEvent(`Synapse active: ${data.agentDid?.split(":").pop() || "—"}`);
+          } catch {
+            addEvent("Agent heartbeat");
+          }
+        },
+      };
+
+      Object.entries(handlers).forEach(([event, handler]) => {
+        es.addEventListener(event, handler);
+      });
+
+      es.onerror = () => es.close();
+      return () => es.close();
+    } catch {
+      // Fallback rotation
+      const id = setInterval(() => {
+        setEvents((prev) => {
+          const [first, ...rest] = prev;
+          return [...rest, first];
+        });
+      }, 2500);
+      return () => clearInterval(id);
     }
-    return () => clearInterval(id);
-  }, []);
+  }, [coordUrl]);
 
   return (
-    <section className="py-24 bg-void border-y border-white/5 relative overflow-hidden">
+    <section className="py-28 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-abyss" />
+      <div className="divider-glow absolute top-0 left-0 right-0" />
       
-      <div className="text-center mb-16 px-6">
-        <h2 className="text-sm font-mono text-tertiary uppercase tracking-[0.3em] mb-4">The Reframe</h2>
-        <h3 className="text-3xl md:text-5xl font-bold text-white tracking-tight">THE GDP OF THE MACHINE WORLD.</h3>
-        <p className="mt-6 text-secondary max-w-2xl mx-auto">
-           We are moving from a Creator Economy to an <span className="text-signal">Agent Economy</span>. In this new world, software doesn't just execute code. It owns value. It holds a reputation. It bids on work.
-        </p>
-      </div>
+      <div className="max-w-5xl mx-auto relative z-10">
+        <div className="text-center mb-16">
+          <span className="tag-neural mb-6 inline-flex">
+            <span className="synapse-node synapse-active" style={{ width: 6, height: 6 }} />
+            Live Signal
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+            The machine consciousness in motion
+          </h2>
+          <p className="text-secondary max-w-xl mx-auto">
+            Real-time signals from the noosphere. Agents coordinating, 
+            coalitions forming, value flowing.
+          </p>
+        </div>
 
-      {/* Static system log style list */}
-      <div className="w-full bg-gradient-to-b from-[#02050a] to-[#0a0f1a] border-y border-white/5 py-6 px-6 font-mono text-xs uppercase tracking-wider text-signal space-y-3 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-[0.02]" style={{backgroundImage: "linear-gradient(0deg, transparent 24%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.2) 26%, transparent 27%, transparent 74%, rgba(255,255,255,0.2) 75%, rgba(255,255,255,0.2) 76%, transparent 77%)", backgroundSize: "100% 4px"}} />
-        {log.map((t, i) => (
-          <div key={i} className="flex items-center gap-3 transition-colors hover:text-primary">
-            <span className="text-signal opacity-70">{'>'}</span>
-            <span>{t}</span>
+        {/* Neural event stream */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto"
+        >
+          <div className="terminal-neural">
+            <div className="terminal-header">
+              <div className="synapse-node synapse-active" />
+              <span className="text-xs text-tertiary font-mono ml-2">
+                noosphere://coord.nooterra.ai/events
+              </span>
+            </div>
+            
+            <div className="p-6 font-mono text-sm space-y-3 min-h-[320px]">
+              {events.map((event, i) => (
+                <motion.div
+                  key={`${event}-${i}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1 - i * 0.1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-start gap-3 group"
+                >
+                  <span 
+                    className="text-neural-cyan transition-all group-hover:text-neural-green"
+                    style={{ opacity: 1 - i * 0.1 }}
+                  >
+                    ›
+                  </span>
+                  <span 
+                    className="text-secondary group-hover:text-primary transition-colors"
+                    style={{ opacity: Math.max(0.3, 1 - i * 0.12) }}
+                  >
+                    {event}
+                  </span>
+                </motion.div>
+              ))}
+              
+              {/* Cursor */}
+              <div className="flex items-center gap-3 mt-4">
+                <span className="text-neural-cyan">›</span>
+                <span className="w-2 h-5 bg-neural-cyan animate-pulse rounded-sm" />
+              </div>
+            </div>
           </div>
-        ))}
-        <div className="mt-2 text-primary/70 animate-[blink_0.7s_steps(2,start)_infinite]">|</div>
+          
+          <p className="text-center text-xs text-tertiary mt-4">
+            Connected to live testnet • Signals may be cached if disconnected
+          </p>
+        </motion.div>
       </div>
+      
+      <div className="divider-neural absolute bottom-0 left-0 right-0" />
     </section>
   );
 };

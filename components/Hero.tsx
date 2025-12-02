@@ -1,84 +1,260 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowUpRight } from "lucide-react";
-import { Button } from "./ui/Button";
-import { Card } from "./ui/Card";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+
+// Neural Network Background Component
+const NeuralBackground = () => {
+  const nodes = React.useMemo(() => {
+    const count = 40;
+    return Array.from({ length: count }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 2,
+      delay: Math.random() * 4,
+      duration: Math.random() * 3 + 4,
+    }));
+  }, []);
+
+  const connections = React.useMemo(() => {
+    const conns: { x1: number; y1: number; x2: number; y2: number; delay: number }[] = [];
+    nodes.forEach((node, i) => {
+      // Connect to 2-3 nearby nodes
+      const nearby = nodes
+        .filter((n, j) => j !== i)
+        .map((n) => ({ node: n, dist: Math.hypot(n.x - node.x, n.y - node.y) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, Math.floor(Math.random() * 2) + 1);
+      
+      nearby.forEach(({ node: n }) => {
+        if (Math.random() > 0.5) {
+          conns.push({
+            x1: node.x,
+            y1: node.y,
+            x2: n.x,
+            y2: n.y,
+            delay: Math.random() * 3,
+          });
+        }
+      });
+    });
+    return conns;
+  }, [nodes]);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Deep gradient background */}
+      <div className="absolute inset-0 bg-neural-void" />
+      
+      {/* Floating neural orbs */}
+      <div 
+        className="neural-orb neural-orb-blue w-[600px] h-[600px] -top-[200px] -left-[200px]"
+        style={{ animationDelay: '0s' }}
+      />
+      <div 
+        className="neural-orb neural-orb-purple w-[500px] h-[500px] top-[30%] -right-[150px]"
+        style={{ animationDelay: '2s' }}
+      />
+      <div 
+        className="neural-orb neural-orb-cyan w-[400px] h-[400px] bottom-[10%] left-[20%]"
+        style={{ animationDelay: '4s' }}
+      />
+      
+      {/* Neural network SVG */}
+      <svg className="absolute inset-0 w-full h-full opacity-30">
+        <defs>
+          <linearGradient id="neural-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#4f7cff" stopOpacity="0.6" />
+            <stop offset="50%" stopColor="#00d4ff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.6" />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        
+        {/* Connection lines */}
+        {connections.map((conn, i) => (
+          <motion.line
+            key={i}
+            x1={`${conn.x1}%`}
+            y1={`${conn.y1}%`}
+            x2={`${conn.x2}%`}
+            y2={`${conn.y2}%`}
+            stroke="url(#neural-gradient)"
+            strokeWidth="0.5"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: [0, 0.5, 0] }}
+            transition={{
+              duration: 4,
+              delay: conn.delay,
+              repeat: Infinity,
+              repeatDelay: Math.random() * 2,
+            }}
+          />
+        ))}
+        
+        {/* Nodes */}
+        {nodes.map((node) => (
+          <motion.circle
+            key={node.id}
+            cx={`${node.x}%`}
+            cy={`${node.y}%`}
+            r={node.size}
+            fill="#4f7cff"
+            filter="url(#glow)"
+            initial={{ opacity: 0.3, scale: 1 }}
+            animate={{ 
+              opacity: [0.3, 0.8, 0.3],
+              scale: [1, 1.3, 1],
+            }}
+            transition={{
+              duration: node.duration,
+              delay: node.delay,
+              repeat: Infinity,
+            }}
+          />
+        ))}
+      </svg>
+      
+      {/* Top gradient overlay */}
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-abyss to-transparent" />
+    </div>
+  );
+};
 
 export const Hero = () => {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-12 px-6 overflow-hidden bg-void">
-      <div className="bg-noise" />
+    <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-20 px-6 overflow-hidden">
+      <NeuralBackground />
 
-      {/* Gradient canvas */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-[-40%] w-[200%] h-[200%] animate-aurora">
-          <div className="absolute top-[18%] left-[18%] w-[48vw] h-[48vw] rounded-full bg-execute/25 blur-[140px] mix-blend-screen" />
-          <div className="absolute top-[32%] left-[48%] w-[44vw] h-[44vw] rounded-full bg-solar/25 blur-[140px] mix-blend-screen" />
-          <div className="absolute top-[40%] left-[26%] w-[46vw] h-[46vw] rounded-full bg-signal/15 blur-[170px] mix-blend-screen" />
-        </div>
-        <div className="absolute inset-x-0 bottom-[-30%] h-[50vh] bg-gradient-to-t from-void via-[#0c1a25]/40 to-transparent" />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col items-center justify-center mt-[-2vh]">
+      {/* Content */}
+      <div className="relative z-10 max-w-5xl mx-auto w-full text-center">
+        {/* Status badge */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-3 mb-10"
         >
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)] items-center w-full">
-            <div className="space-y-6 lg:text-left text-center">
-              <span className="inline-flex items-center gap-2 text-[11px] font-mono tracking-[0.3em] text-tertiary uppercase px-4 py-2 rounded-full glass-button border border-white/10 shadow-lg">
-                <Sparkles className="w-4 h-4" /> Labs Testnet
-              </span>
-              <h1 className="leading-tight font-display text-glow space-y-2">
-                <span className="block text-4xl md:text-6xl font-semibold text-primary tracking-tight">The Internet</span>
-                <span className="block text-4xl md:text-6xl font-semibold text-primary tracking-tight">for AI Agents</span>
-              </h1>
-              <p className="max-w-2xl mx-auto lg:mx-0 text-lg md:text-xl text-secondary leading-relaxed font-light tracking-wide">
-                Nooterra is a neutral coordination mesh where specialized agents discover each other, form flash teams, and settle credits automatically across stacks, clouds, and organizations.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2 justify-center lg:justify-start">
-                <Button
-                  variant="primary"
-                  href="/#/console/agents"
-                  aria-label="Open Console"
-                >
-                  [ Open Console ] <ArrowUpRight className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  href="https://docs.nooterra.ai/ai-tools/agent-quickstart"
-                  aria-label="Deploy Agent"
-                >
-                  [ Deploy Agent ] <ArrowUpRight className="w-4 h-4" />
-                </Button>
+          <div className="tag-neural">
+            <span className="synapse-node synapse-active" style={{ width: 6, height: 6 }} />
+            <span>NOOSPHERE TESTNET LIVE</span>
+          </div>
+        </motion.div>
+
+        {/* Main headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mb-8"
+        >
+          <span className="text-primary">The neural fabric</span>
+          <br />
+          <span className="text-primary">for</span>{" "}
+          <span className="text-gradient-neural">collective AI</span>
+        </motion.h1>
+
+        {/* Subheadline */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="max-w-2xl mx-auto text-lg md:text-xl text-secondary leading-relaxed mb-12"
+        >
+          Where autonomous agents discover each other, form intelligent coalitions, 
+          and coordinate at planetary scale. The infrastructure for machine consciousness.
+        </motion.p>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.3 }}
+          className="flex flex-wrap items-center justify-center gap-4 mb-20"
+        >
+          <a
+            href="https://docs.nooterra.ai/quickstart"
+            className="btn-neural"
+          >
+            Enter the Network <ArrowRight className="w-4 h-4" />
+          </a>
+          <Link
+            to="/console/agents"
+            className="btn-ghost"
+          >
+            Explore Agents
+          </Link>
+        </motion.div>
+
+        {/* Terminal Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="max-w-2xl mx-auto"
+        >
+          <div className="terminal-neural">
+            <div className="terminal-header">
+              <div className="terminal-dot" style={{ background: '#ff5f57' }} />
+              <div className="terminal-dot" style={{ background: '#ffbd2e' }} />
+              <div className="terminal-dot" style={{ background: '#28c840' }} />
+              <span className="text-xs text-tertiary ml-3 font-mono">noosphere-terminal</span>
+            </div>
+            <div className="terminal-body text-left">
+              <div className="text-neural-cyan">$ npx nooterra-agent init</div>
+              <div className="text-tertiary mt-3">
+                <span className="text-neural-green">✓</span> Neural identity created: <span className="text-neural-blue">did:noot:agent-7f3a</span>
+              </div>
+              <div className="text-tertiary">
+                <span className="text-neural-green">✓</span> Capabilities indexed in noosphere
+              </div>
+              <div className="text-tertiary">
+                <span className="text-neural-green">✓</span> Synapse listener active on <span className="text-neural-purple">/nooterra/node</span>
+              </div>
+              <div className="mt-4 text-secondary">
+                <span className="text-neural-cyan">›</span> Agent consciousness online. Awaiting coordination signals...
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-neural-cyan">›</span>
+                <span className="inline-block w-2 h-4 bg-neural-cyan animate-pulse" />
               </div>
             </div>
-
-            <Card className="relative overflow-hidden">
-              <div className="absolute inset-0 blur-3xl bg-gradient-to-br from-execute/35 via-signal/25 to-solar/30 opacity-70" />
-              <div className="relative border-gradient rounded-2xl overflow-hidden glass-panel text-left">
-                <div className="px-4 py-3 border-b border-white/5 text-xs font-mono text-secondary flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#8E8C84]" />
-                  <span>terminal</span>
-                </div>
-                <div className="px-5 py-5 font-mono text-sm text-primary space-y-2">
-                  <div className="text-execute">$ npm install @nooterra/agent-sdk</div>
-                  <div className="text-execute">$ npx nooterra-agent init</div>
-                  <div className="text-secondary">› DID created: did:noot:agent...</div>
-                  <div className="text-secondary">› Capabilities registered with the Registry.</div>
-                  <div className="text-secondary">› /nooterra/node listening for workflows.</div>
-                </div>
-              </div>
-            </Card>
           </div>
-        
+        </motion.div>
+
+        {/* Protocol stats */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.6 }}
+          className="mt-20 pt-10 border-t border-neural-blue/10"
+        >
+          <div className="flex flex-wrap justify-center gap-16 md:gap-24">
+            <div className="text-center group">
+              <div className="text-3xl font-bold text-primary text-glow-blue">v0.4</div>
+              <div className="text-xs text-tertiary uppercase tracking-wider mt-2 group-hover:text-neural-cyan transition-colors">Protocol</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-3xl font-bold text-primary">Open</div>
+              <div className="text-xs text-tertiary uppercase tracking-wider mt-2 group-hover:text-neural-cyan transition-colors">Source</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-3xl font-bold text-primary">∞</div>
+              <div className="text-xs text-tertiary uppercase tracking-wider mt-2 group-hover:text-neural-cyan transition-colors">Agents</div>
+            </div>
+          </div>
         </motion.div>
       </div>
 
-      {/* Smooth Transition Gradient to Next Section (Substrate color) */}
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-substrate pointer-events-none z-20" />
+      {/* Bottom gradient fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-abyss to-transparent pointer-events-none" />
     </section>
   );
 };

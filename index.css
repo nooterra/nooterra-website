@@ -1,84 +1,502 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   NOOTERRA NOOSPHERE DESIGN SYSTEM
+   Collective Intelligence Aesthetic
+   ======================================== */
+
+:root {
+  --void: #0a0a0f;
+  --abyss: #050508;
+  --substrate: #0f0f18;
+  --surface: #161622;
+  
+  --neural-blue: #4f7cff;
+  --neural-cyan: #00d4ff;
+  --neural-purple: #a855f7;
+  --neural-magenta: #e040fb;
+  --neural-green: #39ff8e;
+  
+  --glow-blue: rgba(79, 124, 255, 0.5);
+  --glow-cyan: rgba(0, 212, 255, 0.5);
+  --glow-purple: rgba(168, 85, 247, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: 'Space Grotesk', Inter, system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at 20% 20%, #0f1724 0%, #050607 40%),
-              radial-gradient(circle at 80% 10%, #12233b 0%, #050607 45%),
-              #050607;
-  color: #F7F3EC;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--abyss);
+  color: #f0f0f8;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Utility Classes */
-.glass-panel {
-  background: linear-gradient(135deg, rgba(16, 22, 29, 0.75), rgba(12, 16, 19, 0.85));
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.04);
-  backdrop-filter: blur(16px);
+/* Selection */
+::selection {
+  background: rgba(79, 124, 255, 0.3);
+  color: #fff;
 }
 
-.glass-button {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-  backdrop-filter: blur(10px);
+/* Scrollbar - Minimal */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(79, 124, 255, 0.3);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 124, 255, 0.5);
+}
+
+/* ========================================
+   NEURAL GLASS MORPHISM
+   ======================================== */
+
+.glass-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 24, 0.8) 0%,
+    rgba(10, 10, 15, 0.9) 100%
+  );
+  border: 1px solid rgba(79, 124, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.glass-panel-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(79, 124, 255, 0.3);
+  box-shadow: 
+    0 8px 40px rgba(79, 124, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
 }
 
 .glass-nav {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.08) 45%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(5, 5, 8, 0.85);
+  border-bottom: 1px solid rgba(79, 124, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-.border-gradient {
-  position: relative;
+/* ========================================
+   NEURAL NETWORK BACKGROUNDS
+   ======================================== */
+
+.bg-neural-void {
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(79, 124, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 40% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 45%),
+    var(--abyss);
 }
-.border-gradient::before {
+
+.bg-neural-glow {
+  background: radial-gradient(ellipse at 50% 0%, rgba(79, 124, 255, 0.12) 0%, transparent 60%);
+}
+
+.bg-synapse-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Neural Orb - Floating glow elements */
+.neural-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: float 8s ease-in-out infinite;
+}
+
+.neural-orb-blue {
+  background: radial-gradient(circle, rgba(79, 124, 255, 0.6) 0%, transparent 70%);
+}
+
+.neural-orb-purple {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, transparent 70%);
+}
+
+.neural-orb-cyan {
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.4) 0%, transparent 70%);
+}
+
+/* ========================================
+   TEXT EFFECTS
+   ======================================== */
+
+.text-gradient-neural {
+  background: linear-gradient(135deg, #fff 0%, rgba(79, 124, 255, 1) 50%, rgba(168, 85, 247, 1) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-glow {
+  background: linear-gradient(90deg, #4f7cff, #00d4ff, #a855f7, #4f7cff);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+.text-glow-blue {
+  text-shadow: 0 0 20px rgba(79, 124, 255, 0.5), 0 0 40px rgba(79, 124, 255, 0.3);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 212, 255, 0.3);
+}
+
+/* ========================================
+   BUTTONS - Glowing & Animated
+   ======================================== */
+
+.btn-neural {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(79, 124, 255, 0.9) 0%, rgba(79, 124, 255, 0.7) 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 20px rgba(79, 124, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-neural::before {
   content: '';
   position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(120deg, rgba(215,138,74,0.6), rgba(62,106,90,0.6), rgba(36,69,107,0.6));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
-  z-index: 0;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
 }
 
-.text-glow {
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+.btn-neural:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 30px rgba(79, 124, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.text-glow-signal {
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+.btn-neural:hover::before {
+  left: 100%;
 }
 
-.bg-noise {
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  right: -50%;
-  bottom: -50%;
-  width: 200%;
-  height: 200vh;
-  background: transparent url('http://assets.iceable.com/img/noise-transparent.png') repeat 0 0;
-  background-repeat: repeat;
-  animation: grain 8s steps(10) infinite;
-  opacity: 0.04;
-  z-index: 0;
-  pointer-events: none;
+.btn-ghost {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(240, 240, 248, 0.8);
+  background: transparent;
+  border: 1px solid rgba(79, 124, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-ghost:hover {
+  color: #fff;
+  border-color: rgba(79, 124, 255, 0.6);
+  background: rgba(79, 124, 255, 0.1);
+  box-shadow: 0 0 20px rgba(79, 124, 255, 0.2);
+}
+
+/* ========================================
+   CARDS - Neural Panels
+   ======================================== */
+
+.card-neural {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 24, 0.7) 0%,
+    rgba(10, 10, 15, 0.8) 100%
+  );
+  border: 1px solid rgba(79, 124, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-neural::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(79, 124, 255, 0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-neural:hover {
+  border-color: rgba(79, 124, 255, 0.2);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(79, 124, 255, 0.08);
+  transform: translateY(-4px);
+}
+
+.card-neural:hover::before {
+  opacity: 1;
+}
+
+/* ========================================
+   SYNAPSE NODES - Pulsing indicators
+   ======================================== */
+
+.synapse-node {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neural-cyan);
+  box-shadow: 0 0 10px var(--glow-cyan);
+}
+
+.synapse-node::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: var(--neural-cyan);
+  opacity: 0.4;
+  animation: synapse 2s ease-in-out infinite;
+}
+
+.synapse-active {
+  background: var(--neural-green);
+  box-shadow: 0 0 15px rgba(57, 255, 142, 0.5);
+}
+
+.synapse-active::after {
+  background: var(--neural-green);
+}
+
+/* ========================================
+   TAGS & BADGES
+   ======================================== */
+
+.tag-neural {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--neural-cyan);
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 100px;
+}
+
+/* ========================================
+   TERMINAL / CODE
+   ======================================== */
+
+.terminal-neural {
+  background: linear-gradient(180deg, rgba(10, 10, 15, 0.95) 0%, rgba(5, 5, 8, 0.98) 100%);
+  border: 1px solid rgba(79, 124, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.terminal-header {
+  padding: 14px 18px;
+  background: rgba(79, 124, 255, 0.05);
+  border-bottom: 1px solid rgba(79, 124, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-body {
+  padding: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* ========================================
+   NEURAL CONNECTIONS - SVG Lines
+   ======================================== */
+
+.neural-connection {
+  stroke: url(#neural-gradient);
+  stroke-width: 1;
+  fill: none;
+  stroke-dasharray: 5 5;
+  animation: neural-flow 3s linear infinite;
+}
+
+/* ========================================
+   SECTION DIVIDERS
+   ======================================== */
+
+.divider-neural {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(79, 124, 255, 0.3), transparent);
+}
+
+.divider-glow {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neural-cyan), transparent);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* ========================================
+   LAYOUT
+   ======================================== */
+
+.section {
+  position: relative;
+  padding: 120px 0;
+}
+
+.section-sm {
+  padding: 80px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .section {
+    padding: 80px 0;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+  
+  .btn-neural,
+  .btn-ghost {
+    padding: 12px 20px;
+    font-size: 12px;
+  }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    filter: blur(60px);
+  }
+  50% {
+    opacity: 0.9;
+    filter: blur(80px);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  25% { transform: translateY(-20px) translateX(10px); }
+  50% { transform: translateY(-10px) translateX(-10px); }
+  75% { transform: translateY(-25px) translateX(5px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes synapse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(2); opacity: 0; }
+}
+
+/* Fade in animation for elements */
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

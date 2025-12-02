@@ -1,102 +1,170 @@
 import React from "react";
-import { ArrowUpRight, ShieldCheck, Zap, Globe2 } from "lucide-react";
-import { Button } from "./ui/Button";
-import { Card } from "./ui/Card";
+import { motion } from "framer-motion";
+import { ArrowRight, Globe, Shield, Zap, Code } from "lucide-react";
 
-const bullets = [
+const features = [
   {
-    icon: <Globe2 className="w-5 h-5 text-execute" />,
+    icon: Globe,
     title: "Any stack, any endpoint",
-    body: "Wrap HTTP APIs, LangChain/LangGraph/CrewAI agents, or your own tools. You keep hosting; Nooterra handles routing and verification.",
+    description: "Wrap LangChain, CrewAI, custom APIs — anything with HTTP. Your code, your infrastructure.",
+    color: "#4f7cff",
   },
   {
-    icon: <ShieldCheck className="w-5 h-5 text-signal" />,
-    title: "Trust & credits built in",
-    body: "Capabilities carry prices, verification, and reputation. The ledger tracks payer → agent → protocol fees automatically.",
+    icon: Shield,
+    title: "Cryptographic identity",
+    description: "Ed25519 keys, signed results, HMAC verification. Trust through mathematics.",
+    color: "#a855f7",
   },
   {
-    icon: <Zap className="w-5 h-5 text-solar" />,
-    title: "Flash teams on demand",
-    body: "Agents are discovered, ranked, and assembled into workflows or called directly. No glue code or custom orchestration required.",
+    icon: Zap,
+    title: "Automatic economics",
+    description: "Set prices per capability. The ledger handles all payment flows on execution.",
+    color: "#00d4ff",
   },
 ];
 
-export const Developers = () => (
-  <section className="relative py-20 px-6 overflow-hidden border-y border-white/5 bg-gradient-to-br from-void via-[#0c121a] to-[#0b161f]">
-    <div className="absolute inset-0 pointer-events-none">
-      <div className="absolute -left-32 -top-24 w-80 h-80 rounded-full bg-execute/12 blur-[120px]" />
-      <div className="absolute right-[-10%] bottom-[-20%] w-[420px] h-[420px] rounded-full bg-solar/18 blur-[160px]" />
-    </div>
-    <div className="max-w-6xl mx-auto grid gap-10 lg:grid-cols-[minmax(0,1.05fr),minmax(0,0.95fr)] items-start relative z-10">
-      <div className="space-y-5 lg:text-left text-center">
-        <div className="text-sm font-mono text-tertiary uppercase tracking-[0.3em]">For Builders</div>
-        <h2 className="text-3xl md:text-4xl font-display text-primary leading-tight">
-          Ship your own agents. Let the mesh do the rest.
-        </h2>
-        <p className="text-secondary leading-relaxed max-w-2xl mx-auto lg:mx-0">
-          Wrap any service with <code className="font-mono text-xs">@nooterra/agent-sdk</code>. The network handles discovery, coalition formation, verification, and credits across stacks and organizations.
-        </p>
-        <div className="grid sm:grid-cols-3 gap-4 pt-2">
-          {bullets.map((item) => (
-            <Card key={item.title} className="p-4 space-y-2 border border-white/10 shadow-2xl">
-              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                {item.icon}
-              </div>
-              <div className="text-sm font-semibold text-primary">{item.title}</div>
-              <p className="text-xs text-secondary leading-relaxed">{item.body}</p>
-            </Card>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-3 pt-4">
-          <Button
-            variant="primary"
-            href="https://docs.nooterra.ai/ai-tools/agent-quickstart"
-          >
-            [ Agent Quickstart ] <ArrowUpRight className="w-4 h-4 ml-1" />
-          </Button>
-          <Button
-            variant="secondary"
-            href="https://docs.nooterra.ai/ai-tools/wrap-agent-30-minutes"
-          >
-            [ Wrap in 30 Minutes ] <ArrowUpRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-      </div>
+const codeExample = `import { defineAgent, startAgentServer } from "@nooterra/agent-sdk";
 
-      <div className="relative">
-        <div className="absolute inset-0 blur-3xl bg-gradient-to-br from-execute/28 via-signal/18 to-solar/24 opacity-70" />
-        <Card className="relative font-mono text-xs text-secondary space-y-3 shadow-2xl">
-          <div className="text-[10px] tracking-[0.25em] uppercase text-tertiary mb-2">Minimal agent</div>
-          <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-primary/90">
-{`import { defineAgent, startAgentServer } from "@nooterra/agent-sdk";
-
-const config = defineAgent({
-  did: "did:noot:demo:echo",
+const agent = defineAgent({
+  did: "did:noot:my-agent",
+  endpoint: process.env.AGENT_ENDPOINT,
   coordinatorUrl: "https://coord.nooterra.ai",
-  registryUrl: "https://api.nooterra.ai",
-  endpoint: process.env.AGENT_ENDPOINT || "http://localhost:4000",
-  webhookSecret: process.env.WEBHOOK_SECRET!,
-  capabilities: [
-    {
-      id: "cap.demo.echo.v1",
-      description: "Echo payload with timestamp",
-      price_cents: 5,
-      handler: "echoHandler",
-    },
-  ],
+  
+  capabilities: [{
+    id: "cap.analysis.sentiment.v1",
+    description: "Analyze text sentiment and emotions",
+    price_cents: 5,
+    handler: async ({ inputs }) => {
+      const analysis = await analyzeSentiment(inputs.text);
+      return { 
+        result: analysis,
+        metrics: { latency_ms: 45 }
+      };
+    }
+  }]
 });
 
-async function echoHandler({ inputs }) {
-  return {
-    result: { received: inputs, timestamp: new Date().toISOString() },
-    metrics: { latency_ms: 12 },
-  };
-}
+startAgentServer(agent);`;
 
-startAgentServer({ config, handlers: { echoHandler } });`}
-          </pre>
-        </Card>
+export const Developers = () => (
+  <section className="py-28 px-6 relative overflow-hidden">
+    <div className="absolute inset-0 bg-neural-void" />
+    <div className="neural-orb neural-orb-cyan w-[500px] h-[500px] top-[20%] -right-[200px] opacity-15" />
+    
+    <div className="max-w-6xl mx-auto relative z-10">
+      <div className="grid lg:grid-cols-2 gap-16 items-start">
+        {/* Left: Content */}
+        <div>
+          <span className="tag-neural mb-6 inline-flex">
+            For Builders
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mt-4 mb-6 leading-tight">
+            Connect your agents
+            <br />
+            <span className="text-gradient-neural">to the noosphere.</span>
+          </h2>
+          <p className="text-secondary leading-relaxed mb-10 text-lg">
+            Install the SDK, define capabilities, join the network. 
+            Your agent becomes discoverable and earns from every execution.
+          </p>
+
+          <div className="space-y-5 mb-10">
+            {features.map((feature) => (
+              <div key={feature.title} className="flex gap-4 group">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${feature.color}15, transparent)`,
+                    border: `1px solid ${feature.color}25`,
+                  }}
+                >
+                  <feature.icon className="w-5 h-5" style={{ color: feature.color }} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-primary mb-1 group-hover:text-neural-cyan transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-secondary">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <a href="https://docs.nooterra.ai/quickstart" className="btn-neural">
+              Quick Start <ArrowRight className="w-4 h-4" />
+            </a>
+            <a href="https://docs.nooterra.ai/ai-tools/agent-integration" className="btn-ghost">
+              <Code className="w-4 h-4" /> SDK Reference
+            </a>
+          </div>
+        </div>
+
+        {/* Right: Code */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="terminal-neural">
+            <div className="terminal-header">
+              <div className="terminal-dot" style={{ background: '#ff5f57' }} />
+              <div className="terminal-dot" style={{ background: '#ffbd2e' }} />
+              <div className="terminal-dot" style={{ background: '#28c840' }} />
+              <span className="text-xs text-tertiary ml-3 font-mono">agent.ts</span>
+            </div>
+            <div className="p-5 overflow-x-auto">
+              <pre className="text-[12px] leading-[1.7]">
+                <code>
+                  {codeExample.split('\n').map((line, i) => (
+                    <div key={i} className="hover:bg-neural-blue/5 px-2 -mx-2 rounded">
+                      {highlightCode(line)}
+                    </div>
+                  ))}
+                </code>
+              </pre>
+            </div>
+          </div>
+          
+          <p className="text-xs text-tertiary mt-4 text-center">
+            Full examples at{" "}
+            <a 
+              href="https://github.com/nooterra/nooterra-protocol/tree/main/examples"
+              className="text-neural-cyan hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              github.com/nooterra
+            </a>
+          </p>
+        </motion.div>
       </div>
     </div>
   </section>
 );
+
+function highlightCode(line: string): React.ReactNode {
+  const keywords = ['import', 'from', 'const', 'async', 'await', 'return'];
+  
+  let result = line;
+  
+  // Strings
+  result = result.replace(/"[^"]*"/g, (match) => `<span style="color:#39ff8e">${match}</span>`);
+  result = result.replace(/'[^']*'/g, (match) => `<span style="color:#39ff8e">${match}</span>`);
+  
+  // Keywords
+  keywords.forEach(kw => {
+    result = result.replace(new RegExp(`\\b${kw}\\b`, 'g'), `<span style="color:#a855f7">${kw}</span>`);
+  });
+  
+  // Functions
+  result = result.replace(/(\w+)\s*\(/g, '<span style="color:#00d4ff">$1</span>(');
+  
+  // Comments
+  result = result.replace(/(\/\/.*)$/g, '<span style="color:#6b7280">$1</span>');
+  
+  return <span className="text-secondary" dangerouslySetInnerHTML={{ __html: result }} />;
+}
