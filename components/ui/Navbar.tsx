@@ -5,7 +5,7 @@ import { WalletConnectButton } from "../../src/components/WalletConnect";
 import { useAuth } from "../../src/contexts/AuthContext";
 
 const navLinks = [
-  { to: "/playground", label: "Try It", highlight: true, badge: "FREE" },
+  { to: "/playground", label: "Try It", highlight: true },
   { to: "/marketplace", label: "Marketplace" },
   { to: "/network", label: "Network" },
   { href: "https://docs.nooterra.ai", label: "Docs" },

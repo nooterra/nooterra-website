@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import Navbar from "../../components/ui/Navbar";
 import {
   Search,
   Filter,
@@ -265,6 +266,8 @@ export default function Marketplace() {
 
   return (
     <div className="min-h-screen bg-neural-void">
+      <Navbar />
+      
       {/* Hero Section */}
       <div className="relative pt-32 pb-16 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#4f7cff]/5 to-transparent" />

@@ -116,16 +116,13 @@ export const Hero = () => {
         >
           <Link 
             to="/playground" 
-            className="group relative px-8 py-4 bg-gradient-to-r from-[#4f7cff] to-[#00d4ff] rounded-xl text-white font-semibold text-lg shadow-xl shadow-[#4f7cff]/20 hover:shadow-[#4f7cff]/40 transition-all flex items-center gap-3"
+            className="btn-neural px-6 py-3"
           >
             <Zap className="w-5 h-5" />
             Try It Free
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-[#39ff8e] text-[#050508] text-xs font-bold rounded-full">
-              LIVE
-            </span>
           </Link>
-          <Link to="/signup" className="btn-neural">
+          <Link to="/signup" className="btn-ghost px-6 py-3">
             Get Started <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>

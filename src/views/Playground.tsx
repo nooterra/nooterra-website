@@ -325,6 +325,9 @@ export default function Playground() {
   const [copied, setCopied] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   
+  // Premium upgrade modal
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  
   // Data request state (for non-conversational agents)
   const [pendingDataRequest, setPendingDataRequest] = useState<{
     nodeId: string;
@@ -974,11 +977,17 @@ export default function Playground() {
             )}
             
             <button
-              onClick={() => setIsPremium(!isPremium)}
+              onClick={() => {
+                if (!isPremium) {
+                  setShowPremiumModal(true);
+                } else {
+                  setIsPremium(false);
+                }
+              }}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                 isPremium 
                   ? "bg-gradient-to-r from-[#a855f7] to-[#6366f1] text-white"
-                  : "bg-[#0f0f18] border border-[#4f7cff]/20 text-[#909098]"
+                  : "bg-[#0f0f18] border border-[#4f7cff]/20 text-[#909098] hover:border-[#a855f7]/40 hover:text-[#a855f7]"
               }`}
             >
               {isPremium ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
@@ -1451,7 +1460,7 @@ export default function Playground() {
               
               {!isPremium && (
                 <button
-                  onClick={() => setIsPremium(true)}
+                  onClick={() => setShowPremiumModal(true)}
                   className="w-full mt-4 py-2 text-xs text-[#a855f7] border border-[#a855f7]/30 rounded-lg hover:bg-[#a855f7]/10 transition-all"
                 >
                   Unlock {PREMIUM_AGENTS.length} more agents →
@@ -1523,6 +1532,89 @@ export default function Playground() {
                   <Download className="w-4 h-4" />
                   Download Transcript
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Premium Upgrade Modal */}
+      <AnimatePresence>
+        {showPremiumModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setShowPremiumModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#0a0a12] border border-[#a855f7]/30 rounded-2xl p-6 max-w-md w-full"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#a855f7]" />
+                  Unlock Premium Agents
+                </h2>
+                <button
+                  onClick={() => setShowPremiumModal(false)}
+                  className="text-[#707090] hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-[#909098] text-sm mb-6">
+                Get access to powerful AI agents including image generation, speech recognition, and advanced analysis tools.
+              </p>
+
+              {/* Premium agents preview */}
+              <div className="space-y-3 mb-6">
+                {PREMIUM_AGENTS.map(agent => (
+                  <div key={agent.did} className="flex items-center gap-3 p-3 bg-[#0f0f18] border border-[#a855f7]/10 rounded-xl">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#a855f7]/20 to-[#6366f1]/20 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-[#a855f7]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white font-medium text-sm">{agent.name}</div>
+                      <div className="text-[#707090] text-xs truncate">{agent.description}</div>
+                    </div>
+                    <div className="text-[#a855f7] text-sm font-semibold">{agent.price}¢</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pricing info */}
+              <div className="bg-gradient-to-br from-[#a855f7]/10 to-[#6366f1]/10 border border-[#a855f7]/20 rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="w-4 h-4 text-[#a855f7]" />
+                  <span className="text-white font-semibold text-sm">Pay-per-use Pricing</span>
+                </div>
+                <p className="text-[#909098] text-xs">
+                  No subscription required. Only pay for what you use with micro-payments starting at 1¢ per call. 
+                  Connect your wallet to add credits.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPremiumModal(false)}
+                  className="flex-1 py-3 border border-[#4f7cff]/20 text-[#909098] rounded-xl hover:bg-[#4f7cff]/10 transition-all"
+                >
+                  Maybe Later
+                </button>
+                <Link
+                  to="/signup"
+                  className="flex-1 py-3 bg-gradient-to-r from-[#a855f7] to-[#6366f1] text-white rounded-xl font-medium text-center hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                  onClick={() => setShowPremiumModal(false)}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Sign Up
+                </Link>
               </div>
             </motion.div>
           </motion.div>
