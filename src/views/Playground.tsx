@@ -86,18 +86,67 @@ export default function Playground() {
     ]);
 
     try {
-      const agentName = "Hermes";
-      
-      // Update processing message
+      // Step 1: Update status - analyzing request
       setMessages((prev) => 
         prev.map((m) => 
           m.id === processingId 
-            ? { ...m, content: `Connecting to ${agentName}...` }
+            ? { ...m, content: "🔍 Analyzing your request..." }
             : m
         )
       );
       
-      // Call the coordinator to execute with chat capability
+      // Step 2: Search for relevant agents based on intent
+      const discoverRes = await fetch(`${COORD_URL}/v1/discover?q=${encodeURIComponent(userMessage.content)}&limit=10`, {
+        headers: { "x-api-key": "playground-free-tier" },
+      });
+      
+      let availableAgents: any[] = [];
+      if (discoverRes.ok) {
+        const discoverData = await discoverRes.json();
+        availableAgents = discoverData.results || [];
+      }
+      
+      // Step 3: Build agent context for the orchestrator
+      const agentContext = availableAgents.length > 0 
+        ? `Available specialized agents:\n${availableAgents.slice(0, 5).map((a: any) => 
+            `- ${a.did.split(':').pop()}: ${a.description} (capability: ${a.capabilityId})`
+          ).join('\n')}`
+        : "No specialized agents found for this request.";
+      
+      // Step 4: Update status - found agents
+      const foundCount = availableAgents.length;
+      setMessages((prev) => 
+        prev.map((m) => 
+          m.id === processingId 
+            ? { ...m, content: foundCount > 0 
+                ? `🤖 Found ${foundCount} potential agents. Orchestrating response...` 
+                : "🤖 Connecting to AI assistant..." 
+              }
+            : m
+        )
+      );
+      
+      // Step 5: Build orchestration prompt
+      const orchestrationPrompt = `You are Nooterra's AI orchestrator. Your job is to help users by either:
+1. Answering directly if you can
+2. Explaining which specialized agents could help and what input they need
+3. Guiding the user to provide the right information for specialized tasks
+
+User request: "${userMessage.content}"
+
+${agentContext}
+
+Important guidelines:
+- If the user needs a specialized capability (protein folding, image generation, code, translation, etc.), explain which agent can help and what specific input format is needed.
+- For protein structure: ESMFold needs an amino acid sequence (e.g., "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQFEVVHSLAKWKRQQIAAALEHHHHHH")
+- For image generation: Stable Diffusion needs a detailed text description
+- For code: CodeLlama needs a clear problem description or code to review
+- For translation: OPUS needs source text and target language
+- Be helpful and guide users toward successful agent interactions.
+
+Respond naturally and helpfully:`;
+
+      // Step 6: Call orchestrator (Hermes) with context
       const response = await fetch(`${COORD_URL}/v1/workflows/publish`, {
         method: "POST",
         headers: { 
@@ -111,7 +160,7 @@ export default function Playground() {
           nodes: {
             main: {
               capabilityId: "cap.llm.chat.v1",
-              payload: { query: userMessage.content },
+              payload: { query: orchestrationPrompt },
             },
           },
         }),
@@ -156,6 +205,11 @@ export default function Playground() {
       const responseText = result?.response || result?.output || result?.result || result?.text;
       
       if (responseText) {
+        // Determine agent name from available agents or default
+        const primaryAgent = availableAgents.length > 0 
+          ? availableAgents[0].did.split(':').pop() 
+          : "Nooterra";
+        
         setMessages((prev) => [
           ...prev,
           {
@@ -163,10 +217,22 @@ export default function Playground() {
             role: "assistant",
             content: typeof responseText === 'string' ? responseText : JSON.stringify(responseText, null, 2),
             timestamp: new Date(),
-            agentName: agentName,
+            agentName: `Orchestrator → ${primaryAgent}`,
             status: "complete",
           },
         ]);
+        
+        // Update conversation title based on first message
+        if (messages.length === 0) {
+          const title = userMessage.content.slice(0, 30) + (userMessage.content.length > 30 ? "..." : "");
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === activeConversation
+                ? { ...c, title, lastMessage: responseText.slice(0, 50) }
+                : c
+            )
+          );
+        }
       } else {
         throw new Error("No response received from agent");
       }
