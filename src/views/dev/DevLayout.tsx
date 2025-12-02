@@ -14,13 +14,15 @@ import {
   Plug,
   Rocket,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
 
 const navItems = [
   { to: "/dev", icon: <BarChart3 className="w-5 h-5" />, label: "Dashboard", exact: true },
   { to: "/dev/agents", icon: <Bot className="w-5 h-5" />, label: "My Agents" },
-  { to: "/dev/deploy", icon: <Rocket className="w-5 h-5" />, label: "Deploy", highlight: true },
-  { to: "/dev/integrations", icon: <Plug className="w-5 h-5" />, label: "Integrations", highlight: true },
+  { to: "/dev/specialized-agents", icon: <Sparkles className="w-5 h-5" />, label: "Specialized AI", highlight: true },
+  { to: "/dev/deploy", icon: <Rocket className="w-5 h-5" />, label: "Deploy" },
+  { to: "/dev/integrations", icon: <Plug className="w-5 h-5" />, label: "Integrations" },
   { to: "/dev/analytics", icon: <TrendingUp className="w-5 h-5" />, label: "Analytics" },
   { to: "/dev/earnings", icon: <DollarSign className="w-5 h-5" />, label: "Earnings" },
   { to: "/dev/settings", icon: <Settings className="w-5 h-5" />, label: "Settings" },
