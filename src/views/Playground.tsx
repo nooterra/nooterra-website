@@ -530,6 +530,34 @@ export default function Playground() {
   };
 
   const findAgentsForQuery = async (query: string, hasFile?: boolean): Promise<Agent[]> => {
+    try {
+      // Try to discover real agents from the coordinator
+      const response = await fetch(`${COORD_URL}/v1/discover?query=${encodeURIComponent(query)}&limit=10`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+          // Filter by price if not premium (only free agents for non-premium)
+          const filteredResults = isPremium 
+            ? data.results 
+            : data.results.filter((r: any) => r.price_cents === 0 || r.price_cents === undefined);
+          
+          return filteredResults.slice(0, 5).map((r: any, idx: number) => ({
+            did: r.did,
+            name: r.did.split(':').pop() || `Agent ${idx + 1}`,
+            capability: r.capabilityId,
+            description: r.description || "AI Agent",
+            price: r.price_cents || 0,
+            status: "idle" as const,
+          }));
+        }
+      }
+    } catch (err) {
+      console.warn("Could not discover real agents, using demo agents:", err);
+    }
+    
+    // Fallback to demo agents if coordinator unreachable
     const lowerQuery = query.toLowerCase();
     const availableAgents = isPremium ? [...FREE_AGENTS, ...PREMIUM_AGENTS] : FREE_AGENTS;
     
@@ -709,6 +737,107 @@ export default function Playground() {
   };
 
   const runWorkflow = async (nodes: WorkflowNode[], query: string) => {
+    // Try to publish real workflow to coordinator
+    try {
+      const workflowPayload = {
+        goal: query,
+        budget_cents: isPremium ? 100 : 0, // Free users get 0 budget = free agents only
+        payer: "did:noot:playground-user",
+        nodes: nodes.map((node, idx) => ({
+          id: node.id,
+          capabilityId: node.capability,
+          dependsOn: node.dependsOn,
+        })),
+      };
+      
+      const publishResponse = await fetch(`${COORD_URL}/v1/workflows/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(workflowPayload),
+      });
+      
+      if (publishResponse.ok) {
+        const { workflowId } = await publishResponse.json();
+        
+        addMessage({
+          type: "system",
+          content: `⚡ **Workflow submitted!** ID: \`${workflowId.slice(0, 8)}...\`\n\nWatching for agent responses...`,
+        });
+        
+        // Poll for workflow status
+        let completed = false;
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds max
+        
+        while (!completed && attempts < maxAttempts) {
+          await sleep(1000);
+          attempts++;
+          
+          try {
+            const statusResponse = await fetch(`${COORD_URL}/v1/workflows/${workflowId}`);
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              
+              // Update node statuses
+              for (const nodeStatus of statusData.nodes || []) {
+                const matchingNode = nodes.find(n => n.id === nodeStatus.id || n.capability === nodeStatus.capabilityId);
+                if (matchingNode) {
+                  let uiStatus: WorkflowNode["status"] = "pending";
+                  if (nodeStatus.status === "running") uiStatus = "running";
+                  else if (nodeStatus.status === "done") uiStatus = "success";
+                  else if (nodeStatus.status === "failed") uiStatus = "failed";
+                  
+                  updateWorkflowNode(matchingNode.id, { 
+                    status: uiStatus,
+                    result: nodeStatus.result,
+                    agent: { ...matchingNode.agent!, status: nodeStatus.status === "done" ? "done" : "working" }
+                  });
+                  
+                  if (nodeStatus.status === "done" && nodeStatus.result) {
+                    addMessage({
+                      type: "agent",
+                      content: `✅ **${matchingNode.name}** completed!\n\n${JSON.stringify(nodeStatus.result, null, 2)}`,
+                      agent: matchingNode.agent,
+                    });
+                  }
+                }
+              }
+              
+              // Check if workflow is complete
+              if (statusData.status === "done" || statusData.status === "settled") {
+                completed = true;
+                addMessage({
+                  type: "system",
+                  content: "🎉 **Workflow Complete!** All agents have finished processing your request.\n\n💡 *Tip: Click \"Share\" to save and share this session!*",
+                });
+              } else if (statusData.status === "failed") {
+                completed = true;
+                addMessage({
+                  type: "system",
+                  content: `❌ **Workflow failed:** ${statusData.error || "Unknown error"}`,
+                });
+              }
+            }
+          } catch (pollErr) {
+            console.warn("Poll error:", pollErr);
+          }
+        }
+        
+        if (!completed) {
+          addMessage({
+            type: "system",
+            content: "⏳ Workflow is still processing... Results will appear when agents complete.",
+          });
+        }
+        
+        setIsProcessing(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not publish to coordinator, using simulation:", err);
+    }
+    
+    // Fallback to simulation if coordinator fails
     for (const node of nodes) {
       const shouldContinue = await simulateAgentExecution(node, query);
       if (!shouldContinue) {
