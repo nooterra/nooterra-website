@@ -27,6 +27,7 @@ import NewAgent from "./views/dev/NewAgent";
 import DeployAgent from "./views/dev/DeployAgent";
 import DevAnalytics from "./views/dev/Analytics";
 import Integrations from "./views/dev/Integrations";
+import ImportFromGitHub from "./views/dev/ImportFromGitHub";
 
 // Organization pages
 import OrgLayout from "./views/org/OrgLayout";
@@ -75,6 +76,7 @@ export const AppRoutes = () => (
       <Route path="agents/:id" element={<NewAgent />} />
       <Route path="deploy" element={<DeployAgent />} />
       <Route path="integrations" element={<Integrations />} />
+      <Route path="import-github" element={<ImportFromGitHub />} />
       <Route path="analytics" element={<DevAnalytics />} />
       <Route path="keys" element={<Settings />} />
       <Route path="earnings" element={<Usage />} />
