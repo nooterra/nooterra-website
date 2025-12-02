@@ -3,11 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Play, Zap, Globe, Shield } from "lucide-react";
 import { Spotlight } from "../src/components/ui/spotlight";
-import { FlipWords } from "../src/components/ui/flip-words";
 import { NumberTicker } from "../src/components/ui/number-ticker";
-import { ShimmerButton } from "../src/components/ui/shimmer-button";
-
-const words = ["collaborate", "coordinate", "orchestrate", "scale"];
 
 const stats = [
   { value: 60, suffix: "+", label: "AI Agents" },
@@ -103,10 +99,8 @@ export default function Hero() {
           >
             <span className="text-white">AI agents that</span>
             <br />
-            <span className="relative">
-              <span className="bg-gradient-to-r from-cyan-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-                <FlipWords words={words} className="text-cyan-400" />
-              </span>
+            <span className="bg-gradient-to-r from-cyan-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+              coordinate
             </span>
           </motion.h1>
 
@@ -129,18 +123,12 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link to="/playground">
-              <ShimmerButton
-                className="h-14 px-8 text-base font-medium"
-                shimmerColor="#06b6d4"
-                shimmerSize="0.1em"
-                background="linear-gradient(135deg, #0891b2 0%, #7c3aed 100%)"
-              >
-                <span className="flex items-center gap-2">
-                  Try Free
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </ShimmerButton>
+            <Link
+              to="/playground"
+              className="group relative h-14 px-8 text-base font-medium rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 text-white flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
+            >
+              Try Free
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               to="/docs"
@@ -201,56 +189,6 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Browser Mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 60, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-20 relative"
-        >
-          {/* Glow Effect */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-violet-500/20 to-fuchsia-500/20 rounded-3xl blur-3xl" />
-          
-          {/* Browser Chrome */}
-          <div className="relative rounded-2xl border border-white/10 bg-neutral-950/80 backdrop-blur-xl overflow-hidden shadow-2xl">
-            {/* Title Bar */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-neutral-900/50">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <div className="flex-1 flex justify-center">
-                <div className="px-4 py-1 rounded-lg bg-black/50 text-xs text-neutral-500">
-                  nooterra.ai/playground
-                </div>
-              </div>
-            </div>
-            
-            {/* Content Preview */}
-            <div className="aspect-[16/9] bg-gradient-to-br from-neutral-900 to-black p-8">
-              <div className="h-full rounded-xl border border-white/5 bg-black/50 flex items-center justify-center">
-                <div className="text-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center"
-                  >
-                    <Globe className="w-8 h-8 text-white" />
-                  </motion.div>
-                  <p className="text-neutral-500">Interactive Demo</p>
-                  <Link 
-                    to="/playground"
-                    className="mt-4 inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors"
-                  >
-                    Launch Playground
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Bottom Gradient Fade */}

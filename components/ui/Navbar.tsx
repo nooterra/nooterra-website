@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Sparkles } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 
 const navLinks = [
   { 
@@ -141,13 +141,9 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/signup"
-                className="group relative inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-full bg-white text-black hover:bg-neutral-200 transition-colors"
               >
-                <span className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 opacity-75 blur-sm group-hover:opacity-100 transition-opacity" />
-                <span className="relative flex items-center gap-2 bg-black rounded-full px-5 py-2.5 text-white">
-                  <Sparkles className="w-4 h-4" />
-                  Get Started
-                </span>
+                Get Started
               </Link>
             </div>
 
