@@ -1,365 +1,599 @@
-import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useParams, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
-  Save,
   Play,
+  Save,
   Plus,
-  Bot,
-  GitBranch,
+  Trash2,
+  Settings,
   Zap,
-  Database,
+  Bot,
   Code,
-  Filter,
-  Split,
-  Merge,
-  Clock,
+  FileText,
+  Database,
+  Globe,
+  GitBranch,
   Webhook,
+  Clock,
+  ChevronRight,
   X,
-  GripVertical,
+  Search,
+  Loader2,
+  Check,
+  ArrowRight,
+  Sparkles,
+  Eye,
+  Download,
 } from "lucide-react";
 
-type NodeType = "trigger" | "agent" | "transform" | "condition" | "merge" | "output";
+const COORD_URL = (import.meta as any).env?.VITE_COORD_URL || "https://coord.nooterra.ai";
 
-type Node = {
+interface WorkflowNode {
   id: string;
-  type: NodeType;
+  type: "trigger" | "agent" | "condition" | "output";
   name: string;
+  capability?: string;
   config: Record<string, any>;
-  x: number;
-  y: number;
-};
+  position: { x: number; y: number };
+  connections: string[]; // IDs of connected nodes
+}
 
-type Connection = {
-  from: string;
-  to: string;
-};
+interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  nodes: WorkflowNode[];
+  status: "draft" | "active" | "paused";
+  trigger: "manual" | "webhook" | "schedule";
+}
 
-const nodeTypes = [
-  { type: "trigger" as const, icon: <Zap className="w-4 h-4" />, label: "Trigger", color: "#39ff8e" },
-  { type: "agent" as const, icon: <Bot className="w-4 h-4" />, label: "Agent", color: "#4f7cff" },
-  { type: "transform" as const, icon: <Code className="w-4 h-4" />, label: "Transform", color: "#a855f7" },
-  { type: "condition" as const, icon: <Split className="w-4 h-4" />, label: "Condition", color: "#00d4ff" },
-  { type: "merge" as const, icon: <Merge className="w-4 h-4" />, label: "Merge", color: "#e040fb" },
-  { type: "output" as const, icon: <Database className="w-4 h-4" />, label: "Output", color: "#ff6b6b" },
+const agentCapabilities = [
+  { id: "cap.llm.reasoning.v1", name: "GPT-4 Reasoning", icon: <Sparkles />, category: "LLM" },
+  { id: "cap.llm.code.v1", name: "Code Generation", icon: <Code />, category: "LLM" },
+  { id: "cap.code.review.v1", name: "Code Review", icon: <Code />, category: "Dev" },
+  { id: "cap.data.analyze.v1", name: "Data Analysis", icon: <Database />, category: "Data" },
+  { id: "cap.web.scrape.v1", name: "Web Scraper", icon: <Globe />, category: "Automation" },
+  { id: "cap.doc.summarize.v1", name: "Summarizer", icon: <FileText />, category: "LLM" },
+  { id: "cap.translate.v1", name: "Translator", icon: <Globe />, category: "LLM" },
 ];
 
-const agentOptions = [
-  { id: "gpt4", name: "GPT-4 Reasoning" },
-  { id: "claude", name: "Claude Analysis" },
-  { id: "code-review", name: "Code Reviewer" },
-  { id: "data-analyzer", name: "Data Analyzer" },
-  { id: "content-writer", name: "Content Writer" },
-  { id: "research", name: "Research Agent" },
-];
+const nodeColors: Record<string, string> = {
+  trigger: "#a855f7",
+  agent: "#4f7cff",
+  condition: "#f59e0b",
+  output: "#39ff8e",
+};
 
 export default function WorkflowBuilder() {
-  const navigate = useNavigate();
   const { id } = useParams();
-  const isNew = id === "new";
+  const navigate = useNavigate();
+  const canvasRef = useRef<HTMLDivElement>(null);
+  
+  const [workflow, setWorkflow] = useState<Workflow>({
+    id: id || "new",
+    name: "Untitled Workflow",
+    description: "",
+    nodes: [
+      {
+        id: "trigger-1",
+        type: "trigger",
+        name: "Start",
+        config: { trigger: "manual" },
+        position: { x: 100, y: 200 },
+        connections: [],
+      },
+    ],
+    status: "draft",
+    trigger: "manual",
+  });
+  
+  const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
+  const [showAgentPicker, setShowAgentPicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-  const [name, setName] = React.useState(isNew ? "Untitled Workflow" : "Customer Support Pipeline");
-  const [nodes, setNodes] = React.useState<Node[]>([
-    { id: "1", type: "trigger", name: "API Trigger", config: { type: "webhook" }, x: 100, y: 200 },
-    { id: "2", type: "agent", name: "GPT-4", config: { agentId: "gpt4" }, x: 350, y: 200 },
-    { id: "3", type: "output", name: "Response", config: {}, x: 600, y: 200 },
-  ]);
-  const [connections, setConnections] = React.useState<Connection[]>([
-    { from: "1", to: "2" },
-    { from: "2", to: "3" },
-  ]);
-  const [selectedNode, setSelectedNode] = React.useState<string | null>(null);
-  const [dragging, setDragging] = React.useState<string | null>(null);
-  const [showNodePicker, setShowNodePicker] = React.useState(false);
+  // Load existing workflow
+  useEffect(() => {
+    if (id && id !== "new") {
+      loadWorkflow(id);
+    }
+  }, [id]);
 
-  const addNode = (type: NodeType) => {
-    const newNode: Node = {
-      id: Date.now().toString(),
-      type,
-      name: nodeTypes.find((n) => n.type === type)?.label || "Node",
-      config: {},
-      x: 300 + Math.random() * 100,
-      y: 150 + Math.random() * 100,
-    };
-    setNodes([...nodes, newNode]);
-    setShowNodePicker(false);
+  const loadWorkflow = async (workflowId: string) => {
+    try {
+      const token = localStorage.getItem("nooterra_token");
+      const res = await fetch(`${COORD_URL}/v1/saved-workflows/${workflowId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setWorkflow(data);
+      }
+    } catch (err) {
+      console.error("Failed to load workflow:", err);
+    }
   };
 
-  const deleteNode = (id: string) => {
-    setNodes(nodes.filter((n) => n.id !== id));
-    setConnections(connections.filter((c) => c.from !== id && c.to !== id));
+  const handleNodeDragStart = (e: React.MouseEvent, nodeId: string) => {
+    const node = workflow.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+    
+    setDragging(nodeId);
+    setDragOffset({
+      x: e.clientX - node.position.x,
+      y: e.clientY - node.position.y,
+    });
+  };
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragging) return;
+    
+    setWorkflow(prev => ({
+      ...prev,
+      nodes: prev.nodes.map(node =>
+        node.id === dragging
+          ? { ...node, position: { x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y } }
+          : node
+      ),
+    }));
+  }, [dragging, dragOffset]);
+
+  const handleMouseUp = () => {
+    setDragging(null);
+    setConnecting(null);
+  };
+
+  const addNode = (capability: typeof agentCapabilities[0]) => {
+    const newNode: WorkflowNode = {
+      id: `agent-${Date.now()}`,
+      type: "agent",
+      name: capability.name,
+      capability: capability.id,
+      config: {},
+      position: { x: 300 + Math.random() * 200, y: 150 + Math.random() * 200 },
+      connections: [],
+    };
+
+    // Connect from last node
+    const lastNode = workflow.nodes[workflow.nodes.length - 1];
+    if (lastNode) {
+      lastNode.connections.push(newNode.id);
+    }
+
+    setWorkflow(prev => ({
+      ...prev,
+      nodes: [...prev.nodes, newNode],
+    }));
+    setShowAgentPicker(false);
+  };
+
+  const deleteNode = (nodeId: string) => {
+    if (nodeId === "trigger-1") return; // Can't delete trigger
+    
+    setWorkflow(prev => ({
+      ...prev,
+      nodes: prev.nodes
+        .filter(n => n.id !== nodeId)
+        .map(n => ({
+          ...n,
+          connections: n.connections.filter(c => c !== nodeId),
+        })),
+    }));
     setSelectedNode(null);
   };
 
-  const getNodeColor = (type: NodeType) => {
-    return nodeTypes.find((n) => n.type === type)?.color || "#4f7cff";
+  const saveWorkflow = async () => {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem("nooterra_token");
+      const method = id && id !== "new" ? "PUT" : "POST";
+      const url = id && id !== "new" 
+        ? `${COORD_URL}/v1/saved-workflows/${id}`
+        : `${COORD_URL}/v1/saved-workflows`;
+      
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          name: workflow.name,
+          description: workflow.description,
+          nodes: workflow.nodes.reduce((acc, node) => ({
+            ...acc,
+            [node.id]: {
+              capabilityId: node.capability || "trigger",
+              dependsOn: workflow.nodes
+                .filter(n => n.connections.includes(node.id))
+                .map(n => n.id),
+              payload: node.config,
+            },
+          }), {}),
+          triggerType: workflow.trigger,
+          status: workflow.status,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (!id || id === "new") {
+          navigate(`/org/workflows/${data.id}`);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to save workflow:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const getNodeIcon = (type: NodeType) => {
-    return nodeTypes.find((n) => n.type === type)?.icon;
+  const runWorkflow = async () => {
+    setRunning(true);
+    try {
+      const token = localStorage.getItem("nooterra_token");
+      
+      // Convert to workflow format and execute
+      const nodes = workflow.nodes
+        .filter(n => n.type === "agent")
+        .reduce((acc, node, i) => ({
+          ...acc,
+          [`step${i + 1}`]: {
+            capabilityId: node.capability,
+            dependsOn: i > 0 ? [`step${i}`] : undefined,
+            payload: node.config,
+          },
+        }), {});
+
+      const res = await fetch(`${COORD_URL}/v1/workflows/publish`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          intent: workflow.description || workflow.name,
+          maxCents: 1000,
+          nodes,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        navigate(`/org/workflows/${data.workflowId || id}`);
+      }
+    } catch (err) {
+      console.error("Failed to run workflow:", err);
+    } finally {
+      setRunning(false);
+    }
   };
+
+  const filteredCapabilities = agentCapabilities.filter(cap =>
+    cap.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    cap.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b border-[#4f7cff]/10 bg-[#0a0a12] flex-shrink-0">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between p-4 bg-[#0a0a12] border-b border-[#4f7cff]/10">
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate("/org/workflows")}
-            className="text-[#707090] hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="bg-transparent text-white font-semibold text-lg focus:outline-none border-b border-transparent hover:border-[#4f7cff]/30 focus:border-[#00d4ff]"
+            value={workflow.name}
+            onChange={(e) => setWorkflow(prev => ({ ...prev, name: e.target.value }))}
+            className="text-lg font-semibold bg-transparent text-white border-b border-transparent hover:border-[#4f7cff]/30 focus:border-[#4f7cff] focus:outline-none px-1"
           />
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            workflow.status === "active" ? "bg-[#39ff8e]/10 text-[#39ff8e]" :
+            workflow.status === "paused" ? "bg-yellow-500/10 text-yellow-500" :
+            "bg-[#707090]/10 text-[#707090]"
+          }`}>
+            {workflow.status}
+          </span>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="btn-ghost text-sm py-2">
-            <Play className="w-4 h-4" /> Test
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowPreview(true)}
+            className="btn-ghost py-2"
+          >
+            <Eye className="w-4 h-4" /> Preview
           </button>
-          <button className="btn-neural text-sm py-2">
-            <Save className="w-4 h-4" /> Save
+          <button
+            onClick={saveWorkflow}
+            disabled={saving}
+            className="btn-ghost py-2"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save
+          </button>
+          <button
+            onClick={runWorkflow}
+            disabled={running || workflow.nodes.filter(n => n.type === "agent").length === 0}
+            className="btn-neural py-2"
+          >
+            {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+            Run
           </button>
         </div>
-      </header>
+      </div>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Canvas */}
-        <div className="flex-1 relative bg-[#050508] overflow-auto">
-          {/* Grid background */}
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(79, 124, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(79, 124, 255, 0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: "40px 40px",
-            }}
-          />
-
-          {/* SVG Connections */}
+        <div
+          ref={canvasRef}
+          className="flex-1 relative bg-[#050508] overflow-auto"
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 1px 1px, rgba(79, 124, 255, 0.1) 1px, transparent 0)
+            `,
+            backgroundSize: "40px 40px",
+          }}
+        >
+          {/* Connection Lines */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            {connections.map((conn, i) => {
-              const fromNode = nodes.find((n) => n.id === conn.from);
-              const toNode = nodes.find((n) => n.id === conn.to);
-              if (!fromNode || !toNode) return null;
-
-              const x1 = fromNode.x + 120;
-              const y1 = fromNode.y + 40;
-              const x2 = toNode.x;
-              const y2 = toNode.y + 40;
-              const midX = (x1 + x2) / 2;
-
-              return (
-                <path
-                  key={i}
-                  d={`M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`}
-                  stroke="url(#conn-gradient)"
-                  strokeWidth="2"
-                  fill="none"
-                  opacity="0.6"
-                />
-              );
-            })}
-            <defs>
-              <linearGradient id="conn-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#4f7cff" />
-                <stop offset="100%" stopColor="#00d4ff" />
-              </linearGradient>
-            </defs>
+            {workflow.nodes.map(node =>
+              node.connections.map(targetId => {
+                const target = workflow.nodes.find(n => n.id === targetId);
+                if (!target) return null;
+                return (
+                  <g key={`${node.id}-${targetId}`}>
+                    <line
+                      x1={node.position.x + 140}
+                      y1={node.position.y + 40}
+                      x2={target.position.x}
+                      y2={target.position.y + 40}
+                      stroke="url(#connectionGradient)"
+                      strokeWidth="2"
+                    />
+                    <defs>
+                      <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor={nodeColors[node.type]} />
+                        <stop offset="100%" stopColor={nodeColors[target.type]} />
+                      </linearGradient>
+                    </defs>
+                  </g>
+                );
+              })
+            )}
           </svg>
 
           {/* Nodes */}
-          {nodes.map((node) => (
+          {workflow.nodes.map(node => (
             <motion.div
               key={node.id}
-              drag
-              dragMomentum={false}
-              onDragEnd={(_, info) => {
-                setNodes((prev) =>
-                  prev.map((n) =>
-                    n.id === node.id
-                      ? { ...n, x: n.x + info.offset.x, y: n.y + info.offset.y }
-                      : n
-                  )
-                );
-              }}
-              onClick={() => setSelectedNode(node.id)}
-              className={`absolute cursor-grab active:cursor-grabbing ${
-                selectedNode === node.id ? "z-10" : ""
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`absolute cursor-move select-none ${
+                selectedNode?.id === node.id ? "ring-2 ring-[#4f7cff]" : ""
               }`}
-              style={{ left: node.x, top: node.y }}
+              style={{
+                left: node.position.x,
+                top: node.position.y,
+                width: 140,
+              }}
+              onMouseDown={(e) => handleNodeDragStart(e, node.id)}
+              onClick={() => setSelectedNode(node)}
             >
               <div
-                className={`w-[120px] rounded-xl border-2 bg-[#0a0a12] transition-all ${
-                  selectedNode === node.id
-                    ? "border-[#00d4ff] shadow-[0_0_20px_rgba(0,212,255,0.3)]"
-                    : "border-[#4f7cff]/20 hover:border-[#4f7cff]/40"
-                }`}
+                className="rounded-xl border-2 overflow-hidden"
+                style={{
+                  borderColor: nodeColors[node.type],
+                  backgroundColor: `${nodeColors[node.type]}10`,
+                }}
               >
                 <div
-                  className="h-2 rounded-t-[10px]"
-                  style={{ backgroundColor: getNodeColor(node.type) }}
-                />
-                <div className="p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div
-                      className="w-6 h-6 rounded flex items-center justify-center"
-                      style={{
-                        backgroundColor: `${getNodeColor(node.type)}20`,
-                        color: getNodeColor(node.type),
-                      }}
-                    >
-                      {getNodeIcon(node.type)}
-                    </div>
-                    <span className="text-xs text-[#707090] uppercase">{node.type}</span>
-                  </div>
-                  <div className="text-sm text-white font-medium truncate">{node.name}</div>
+                  className="px-3 py-2 flex items-center gap-2"
+                  style={{ backgroundColor: `${nodeColors[node.type]}30` }}
+                >
+                  {node.type === "trigger" ? <Zap className="w-4 h-4" /> :
+                   node.type === "agent" ? <Bot className="w-4 h-4" /> :
+                   node.type === "condition" ? <GitBranch className="w-4 h-4" /> :
+                   <Check className="w-4 h-4" />}
+                  <span className="text-white text-sm font-medium truncate">{node.name}</span>
                 </div>
-                {/* Connection dots */}
-                <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#4f7cff] rounded-full border-2 border-[#0a0a12]" />
-                <div className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#00d4ff] rounded-full border-2 border-[#0a0a12]" />
+                {node.capability && (
+                  <div className="px-3 py-2">
+                    <code className="text-[10px] text-[#707090] break-all">
+                      {node.capability.split(".").slice(-2).join(".")}
+                    </code>
+                  </div>
+                )}
               </div>
+              
+              {/* Connection Handle */}
+              <div
+                className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#4f7cff] border-2 border-[#0a0a12] cursor-crosshair"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  setConnecting(node.id);
+                }}
+              />
             </motion.div>
           ))}
 
-          {/* Add node button */}
+          {/* Add Node Button */}
           <button
-            onClick={() => setShowNodePicker(true)}
-            className="absolute bottom-6 right-6 w-12 h-12 bg-[#00d4ff] hover:bg-[#00d4ff]/90 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,212,255,0.4)] transition-all"
+            onClick={() => setShowAgentPicker(true)}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 btn-neural py-3 px-6"
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="w-5 h-5" /> Add Agent
           </button>
-
-          {/* Node picker */}
-          {showNodePicker && (
-            <div className="absolute bottom-20 right-6 bg-[#0a0a12] border border-[#4f7cff]/20 rounded-xl p-3 shadow-xl">
-              <div className="text-xs text-[#707090] mb-2 px-2">Add Node</div>
-              <div className="grid grid-cols-2 gap-2">
-                {nodeTypes.map((nt) => (
-                  <button
-                    key={nt.type}
-                    onClick={() => addNode(nt.type)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#4f7cff]/10 transition-colors"
-                  >
-                    <div
-                      className="w-6 h-6 rounded flex items-center justify-center"
-                      style={{ backgroundColor: `${nt.color}20`, color: nt.color }}
-                    >
-                      {nt.icon}
-                    </div>
-                    <span className="text-sm text-white">{nt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Properties panel */}
-        {selectedNode && (
-          <div className="w-80 border-l border-[#4f7cff]/10 bg-[#0a0a12] p-5 overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-white font-semibold">Properties</h3>
-              <button
-                onClick={() => setSelectedNode(null)}
-                className="text-[#707090] hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        {/* Node Config Panel */}
+        <AnimatePresence>
+          {selectedNode && (
+            <motion.div
+              initial={{ x: 300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 300, opacity: 0 }}
+              className="w-80 bg-[#0a0a12] border-l border-[#4f7cff]/10 overflow-y-auto"
+            >
+              <div className="p-4 border-b border-[#4f7cff]/10 flex items-center justify-between">
+                <h3 className="text-white font-semibold">Configure Node</h3>
+                <button
+                  onClick={() => setSelectedNode(null)}
+                  className="text-[#707090] hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-            {(() => {
-              const node = nodes.find((n) => n.id === selectedNode);
-              if (!node) return null;
-
-              return (
-                <div className="space-y-5">
-                  <div>
-                    <label className="block text-sm text-[#707090] mb-2">Node Name</label>
-                    <input
-                      type="text"
-                      value={node.name}
-                      onChange={(e) =>
-                        setNodes((prev) =>
-                          prev.map((n) => (n.id === node.id ? { ...n, name: e.target.value } : n))
-                        )
-                      }
-                      className="w-full bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d4ff]/50"
-                    />
-                  </div>
-
-                  {node.type === "agent" && (
-                    <div>
-                      <label className="block text-sm text-[#707090] mb-2">Select Agent</label>
-                      <select
-                        value={node.config.agentId || ""}
-                        onChange={(e) =>
-                          setNodes((prev) =>
-                            prev.map((n) =>
-                              n.id === node.id
-                                ? { ...n, config: { ...n.config, agentId: e.target.value } }
-                                : n
-                            )
-                          )
-                        }
-                        className="w-full bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d4ff]/50"
-                      >
-                        <option value="">Select an agent...</option>
-                        {agentOptions.map((agent) => (
-                          <option key={agent.id} value={agent.id}>
-                            {agent.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {node.type === "trigger" && (
-                    <div>
-                      <label className="block text-sm text-[#707090] mb-2">Trigger Type</label>
-                      <select
-                        value={node.config.type || "webhook"}
-                        onChange={(e) =>
-                          setNodes((prev) =>
-                            prev.map((n) =>
-                              n.id === node.id
-                                ? { ...n, config: { ...n.config, type: e.target.value } }
-                                : n
-                            )
-                          )
-                        }
-                        className="w-full bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d4ff]/50"
-                      >
-                        <option value="webhook">Webhook</option>
-                        <option value="schedule">Schedule</option>
-                        <option value="event">Event</option>
-                        <option value="manual">Manual</option>
-                      </select>
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t border-[#4f7cff]/10">
-                    <button
-                      onClick={() => deleteNode(node.id)}
-                      className="w-full py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                    >
-                      Delete Node
-                    </button>
-                  </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm text-[#707090] mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={selectedNode.name}
+                    onChange={(e) => {
+                      setWorkflow(prev => ({
+                        ...prev,
+                        nodes: prev.nodes.map(n =>
+                          n.id === selectedNode.id ? { ...n, name: e.target.value } : n
+                        ),
+                      }));
+                      setSelectedNode({ ...selectedNode, name: e.target.value });
+                    }}
+                    className="w-full bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white"
+                  />
                 </div>
-              );
-            })()}
-          </div>
-        )}
+
+                {selectedNode.type === "trigger" && (
+                  <div>
+                    <label className="block text-sm text-[#707090] mb-1">Trigger Type</label>
+                    <select
+                      value={selectedNode.config.trigger || "manual"}
+                      onChange={(e) => {
+                        const newConfig = { ...selectedNode.config, trigger: e.target.value };
+                        setWorkflow(prev => ({
+                          ...prev,
+                          nodes: prev.nodes.map(n =>
+                            n.id === selectedNode.id ? { ...n, config: newConfig } : n
+                          ),
+                        }));
+                        setSelectedNode({ ...selectedNode, config: newConfig });
+                      }}
+                      className="w-full bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white"
+                    >
+                      <option value="manual">Manual</option>
+                      <option value="webhook">Webhook</option>
+                      <option value="schedule">Schedule</option>
+                    </select>
+                  </div>
+                )}
+
+                {selectedNode.capability && (
+                  <div>
+                    <label className="block text-sm text-[#707090] mb-1">Capability</label>
+                    <code className="block text-[#4f7cff] text-sm bg-[#0f0f18] px-3 py-2 rounded-lg">
+                      {selectedNode.capability}
+                    </code>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm text-[#707090] mb-1">Input Payload</label>
+                  <textarea
+                    value={JSON.stringify(selectedNode.config.payload || {}, null, 2)}
+                    onChange={(e) => {
+                      try {
+                        const payload = JSON.parse(e.target.value);
+                        const newConfig = { ...selectedNode.config, payload };
+                        setWorkflow(prev => ({
+                          ...prev,
+                          nodes: prev.nodes.map(n =>
+                            n.id === selectedNode.id ? { ...n, config: newConfig } : n
+                          ),
+                        }));
+                        setSelectedNode({ ...selectedNode, config: newConfig });
+                      } catch {}
+                    }}
+                    placeholder="{}"
+                    rows={4}
+                    className="w-full bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white font-mono text-sm resize-none"
+                  />
+                </div>
+
+                {selectedNode.type !== "trigger" && (
+                  <button
+                    onClick={() => deleteNode(selectedNode.id)}
+                    className="w-full flex items-center justify-center gap-2 py-2 text-red-400 bg-red-500/10 rounded-lg hover:bg-red-500/20"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete Node
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Agent Picker Modal */}
+      <AnimatePresence>
+        {showAgentPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowAgentPicker(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg bg-[#0a0a12] border border-[#4f7cff]/20 rounded-2xl overflow-hidden"
+            >
+              <div className="p-4 border-b border-[#4f7cff]/10">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#707090]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search agents..."
+                    className="w-full pl-10 pr-4 py-3 bg-[#0f0f18] border border-[#4f7cff]/20 rounded-xl text-white placeholder-[#505060]"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 max-h-[400px] overflow-y-auto">
+                <div className="grid gap-2">
+                  {filteredCapabilities.map((cap) => (
+                    <button
+                      key={cap.id}
+                      onClick={() => addNode(cap)}
+                      className="flex items-center gap-4 p-4 rounded-xl bg-[#0f0f18] hover:bg-[#4f7cff]/10 border border-transparent hover:border-[#4f7cff]/30 transition-all text-left"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#4f7cff]/10 flex items-center justify-center text-[#4f7cff]">
+                        {cap.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-white font-medium">{cap.name}</div>
+                        <div className="text-[#707090] text-xs">{cap.category}</div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-[#707090]" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-

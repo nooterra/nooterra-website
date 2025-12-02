@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { HashRouter as Router } from 'react-router-dom';
 import { AppRoutes } from './src/routes';
+import { Web3Provider } from './src/providers/Web3Provider';
+import { AuthProvider } from './src/contexts/AuthContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,8 +14,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <Router>
-      <AppRoutes />
-    </Router>
+    <Web3Provider>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </Web3Provider>
   </React.StrictMode>
 );

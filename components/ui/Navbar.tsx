@@ -1,26 +1,21 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
+import { WalletConnectButton } from "../../src/components/WalletConnect";
+import { useAuth } from "../../src/contexts/AuthContext";
 
 const navLinks = [
   { to: "/", label: "Home" },
-  { to: "/explore", label: "Explore" },
+  { to: "/marketplace", label: "Marketplace", highlight: true },
+  { to: "/network", label: "Network" },
   { href: "https://docs.nooterra.ai", label: "Docs" },
-  { href: "https://docs.nooterra.ai/whitepaper", label: "Protocol" },
 ];
 
 export const Navbar = () => {
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
-  const [user, setUser] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
-  }, []);
+  const { user, isAuthenticated } = useAuth();
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -74,7 +69,9 @@ export const Navbar = () => {
                 to={link.to!}
                 className={`text-sm transition-colors ${
                   location.pathname === link.to
-                    ? "text-white"
+                    ? "text-white font-medium"
+                    : (link as any).highlight
+                    ? "text-[#4f7cff] hover:text-[#00d4ff] font-medium"
                     : "text-[#909098] hover:text-white"
                 }`}
               >
@@ -84,27 +81,20 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* CTA */}
+        {/* CTA / Wallet */}
         <div className="hidden md:flex items-center gap-4">
-          {user ? (
-            <Link
-              to={getDashboardLink()}
-              className="btn-neural text-sm py-2"
-            >
-              Dashboard <ArrowRight className="w-4 h-4" />
-            </Link>
-          ) : (
-            <>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3">
               <Link
-                to="/login"
+                to={getDashboardLink()}
                 className="text-sm text-[#909098] hover:text-white transition-colors"
               >
-                Sign In
+                Dashboard
               </Link>
-              <Link to="/signup" className="btn-neural text-sm py-2">
-                Get Started <ArrowRight className="w-4 h-4" />
-              </Link>
-            </>
+              <WalletConnectButton />
+            </div>
+          ) : (
+            <WalletConnectButton />
           )}
         </div>
 
@@ -151,7 +141,7 @@ export const Navbar = () => {
           </div>
 
           <div className="mt-6 pt-6 border-t border-[#4f7cff]/10 space-y-3">
-            {user ? (
+            {isAuthenticated ? (
               <Link
                 to={getDashboardLink()}
                 className="btn-neural w-full justify-center"
@@ -160,22 +150,9 @@ export const Navbar = () => {
                 Dashboard
               </Link>
             ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="block text-center text-[#909098] hover:text-white py-2"
-                  onClick={() => setOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/signup"
-                  className="btn-neural w-full justify-center"
-                  onClick={() => setOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </>
+              <div onClick={() => setOpen(false)}>
+                <WalletConnectButton />
+              </div>
             )}
           </div>
         </div>

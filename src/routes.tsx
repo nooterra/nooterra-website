@@ -4,6 +4,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // Public pages
 import Home from "./views/Home";
 import Explore from "./views/Explore";
+import Marketplace from "./views/Marketplace";
+import NetworkDashboard from "./views/NetworkDashboard";
 
 // Auth pages
 import Login from "./views/auth/Login";
@@ -22,6 +24,9 @@ import DevLayout from "./views/dev/DevLayout";
 import DevDashboard from "./views/dev/Dashboard";
 import MyAgents from "./views/dev/MyAgents";
 import NewAgent from "./views/dev/NewAgent";
+import DeployAgent from "./views/dev/DeployAgent";
+import DevAnalytics from "./views/dev/Analytics";
+import Integrations from "./views/dev/Integrations";
 
 // Organization pages
 import OrgLayout from "./views/org/OrgLayout";
@@ -45,6 +50,8 @@ export const AppRoutes = () => (
     {/* Public routes */}
     <Route path="/" element={<Home />} />
     <Route path="/explore" element={<Explore />} />
+    <Route path="/marketplace" element={<Marketplace />} />
+    <Route path="/network" element={<NetworkDashboard />} />
     
     {/* Auth routes */}
     <Route path="/login" element={<Login />} />
@@ -66,6 +73,9 @@ export const AppRoutes = () => (
       <Route path="agents" element={<MyAgents />} />
       <Route path="agents/new" element={<NewAgent />} />
       <Route path="agents/:id" element={<NewAgent />} />
+      <Route path="deploy" element={<DeployAgent />} />
+      <Route path="integrations" element={<Integrations />} />
+      <Route path="analytics" element={<DevAnalytics />} />
       <Route path="keys" element={<Settings />} />
       <Route path="earnings" element={<Usage />} />
       <Route path="docs" element={<Navigate to="https://docs.nooterra.ai" />} />

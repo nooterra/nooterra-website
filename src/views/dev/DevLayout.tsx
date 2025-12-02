@@ -11,14 +11,18 @@ import {
   Menu,
   X,
   Plus,
+  Plug,
+  Rocket,
+  TrendingUp,
 } from "lucide-react";
 
 const navItems = [
   { to: "/dev", icon: <BarChart3 className="w-5 h-5" />, label: "Dashboard", exact: true },
   { to: "/dev/agents", icon: <Bot className="w-5 h-5" />, label: "My Agents" },
-  { to: "/dev/keys", icon: <Key className="w-5 h-5" />, label: "API Keys" },
+  { to: "/dev/deploy", icon: <Rocket className="w-5 h-5" />, label: "Deploy", highlight: true },
+  { to: "/dev/integrations", icon: <Plug className="w-5 h-5" />, label: "Integrations", highlight: true },
+  { to: "/dev/analytics", icon: <TrendingUp className="w-5 h-5" />, label: "Analytics" },
   { to: "/dev/earnings", icon: <DollarSign className="w-5 h-5" />, label: "Earnings" },
-  { to: "/dev/docs", icon: <Book className="w-5 h-5" />, label: "Documentation" },
   { to: "/dev/settings", icon: <Settings className="w-5 h-5" />, label: "Settings" },
 ];
 
@@ -103,14 +107,21 @@ export default function DevLayout() {
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
                   ${
-                    isActive(item.to, item.exact)
+                    isActive(item.to, (item as any).exact)
                       ? "bg-[#a855f7]/15 text-[#a855f7]"
+                      : (item as any).highlight
+                      ? "text-[#39ff8e] hover:text-white hover:bg-[#39ff8e]/10 bg-[#39ff8e]/5"
                       : "text-[#707090] hover:text-white hover:bg-[#a855f7]/5"
                   }
                 `}
               >
                 {item.icon}
                 <span>{item.label}</span>
+                {(item as any).highlight && (
+                  <span className="ml-auto text-[9px] bg-[#39ff8e]/20 text-[#39ff8e] px-1.5 py-0.5 rounded-full">
+                    NEW
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
