@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send,
@@ -21,8 +21,20 @@ import {
   DollarSign,
   Lock,
   Unlock,
+  Mic,
+  MicOff,
+  Upload,
+  Image,
+  FileText,
+  X,
+  Share2,
+  Copy,
+  Check,
+  Link as LinkIcon,
+  Download,
+  Volume2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 const COORD_URL = (import.meta as any).env?.VITE_COORD_URL || "https://coord.nooterra.ai";
 
@@ -39,10 +51,11 @@ interface Agent {
 
 interface Message {
   id: string;
-  type: "user" | "system" | "agent" | "question";
+  type: "user" | "system" | "agent" | "question" | "file";
   content: string;
   agent?: Agent;
   timestamp: Date;
+  file?: UploadedFile;
 }
 
 interface WorkflowNode {
@@ -54,6 +67,14 @@ interface WorkflowNode {
   dependsOn: string[];
   result?: any;
   question?: string;
+}
+
+interface UploadedFile {
+  name: string;
+  type: string;
+  size: number;
+  preview?: string;
+  data?: string;
 }
 
 // Simulated free agents for demo
@@ -106,6 +127,14 @@ const FREE_AGENTS: Agent[] = [
     price: 0,
     status: "idle",
   },
+  {
+    did: "did:noot:hf:trocr_ocr",
+    name: "TrOCR",
+    capability: "cap.document.ocr.trocr.v1",
+    description: "Extract text from images",
+    price: 0,
+    status: "idle",
+  },
 ];
 
 const PREMIUM_AGENTS: Agent[] = [
@@ -136,6 +165,7 @@ const PREMIUM_AGENTS: Agent[] = [
 ];
 
 export default function Playground() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [workflow, setWorkflow] = useState<WorkflowNode[]>([]);
@@ -146,6 +176,44 @@ export default function Playground() {
   const [questionAnswer, setQuestionAnswer] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [searchingPhase, setSearchingPhase] = useState<string | null>(null);
+  
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  
+  // File upload state
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Share state
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Check for shared session on mount
+  useEffect(() => {
+    const sharedSession = searchParams.get("session");
+    if (sharedSession) {
+      loadSharedSession(sharedSession);
+    }
+    
+    // Check voice support
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      setVoiceSupported(true);
+    }
+  }, []);
+
+  const loadSharedSession = async (sessionId: string) => {
+    // In a real implementation, this would load from backend
+    // For demo, we'll show a message
+    addMessage({
+      type: "system",
+      content: `📎 Loaded shared session: ${sessionId.slice(0, 8)}...`,
+    });
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -171,12 +239,167 @@ export default function Playground() {
 
   const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-  const findAgentsForQuery = async (query: string): Promise<Agent[]> => {
+  // Voice input handling
+  const startListening = () => {
+    if (!voiceSupported) return;
+    
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.lang = 'en-US';
+    
+    recognitionRef.current.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0].transcript)
+        .join('');
+      setInput(transcript);
+    };
+    
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+    };
+    
+    recognitionRef.current.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+    
+    recognitionRef.current.start();
+    setIsListening(true);
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  // File upload handling
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFile(files[0]);
+    }
+  }, []);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFile(files[0]);
+    }
+  };
+
+  const handleFile = (file: File) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      const uploadedFile: UploadedFile = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: result,
+      };
+      
+      // Generate preview for images
+      if (file.type.startsWith('image/')) {
+        uploadedFile.preview = result;
+      }
+      
+      setUploadedFile(uploadedFile);
+      
+      addMessage({
+        type: "file",
+        content: `📎 Uploaded: ${file.name} (${formatFileSize(file.size)})`,
+        file: uploadedFile,
+      });
+    };
+    
+    if (file.type.startsWith('image/')) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const clearFile = () => {
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Share handling
+  const generateShareUrl = () => {
+    const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+    
+    // In a real implementation, save session to backend here
+    const url = `${window.location.origin}/playground?session=${newSessionId}`;
+    setShareUrl(url);
+    setShowShareModal(true);
+  };
+
+  const copyShareUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const downloadTranscript = () => {
+    const transcript = messages
+      .map(m => `[${m.timestamp.toLocaleTimeString()}] ${m.type.toUpperCase()}: ${m.content}`)
+      .join('\n\n');
+    
+    const blob = new Blob([transcript], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nooterra-session-${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const findAgentsForQuery = async (query: string, hasFile?: boolean): Promise<Agent[]> => {
     const lowerQuery = query.toLowerCase();
     const availableAgents = isPremium ? [...FREE_AGENTS, ...PREMIUM_AGENTS] : FREE_AGENTS;
     
-    // Simple keyword matching for demo
     const matched: Agent[] = [];
+    
+    // If file is uploaded, add relevant agents
+    if (hasFile && uploadedFile) {
+      if (uploadedFile.type.startsWith('image/')) {
+        matched.push(availableAgents.find(a => a.capability.includes("ocr"))!);
+        if (isPremium) {
+          matched.push(availableAgents.find(a => a.capability.includes("detect"))!);
+        }
+      }
+    }
     
     if (lowerQuery.includes("summarize") || lowerQuery.includes("summary") || lowerQuery.includes("tldr")) {
       matched.push(availableAgents.find(a => a.capability.includes("summarize"))!);
@@ -196,14 +419,16 @@ export default function Playground() {
     if (lowerQuery.includes("answer") || lowerQuery.includes("question") || lowerQuery.includes("explain") || lowerQuery.includes("what is")) {
       matched.push(availableAgents.find(a => a.capability.includes("generate"))!);
     }
-    if (isPremium && (lowerQuery.includes("image") || lowerQuery.includes("picture") || lowerQuery.includes("generate"))) {
+    if (isPremium && (lowerQuery.includes("image") || lowerQuery.includes("picture") || lowerQuery.includes("generate") || lowerQuery.includes("create"))) {
       matched.push(availableAgents.find(a => a.capability.includes("creative"))!);
     }
     if (isPremium && (lowerQuery.includes("audio") || lowerQuery.includes("transcribe") || lowerQuery.includes("speech"))) {
       matched.push(availableAgents.find(a => a.capability.includes("whisper"))!);
     }
+    if (lowerQuery.includes("ocr") || lowerQuery.includes("text from image") || lowerQuery.includes("read image")) {
+      matched.push(availableAgents.find(a => a.capability.includes("ocr"))!);
+    }
     
-    // If no specific match, use general text generation
     if (matched.length === 0) {
       matched.push(availableAgents.find(a => a.capability.includes("generate"))!);
     }
@@ -258,17 +483,20 @@ export default function Playground() {
         agent: node.agent,
       });
       
-      return false; // Workflow paused
+      return false;
     }
 
-    // Simulate success
+    // Simulate success with contextual results
     const fakeResults: Record<string, string> = {
-      "summarize": "📝 **Summary:** The text discusses key points about AI coordination and multi-agent systems...",
-      "sentiment": "😊 **Sentiment Analysis:** Positive (85% confidence) - The text expresses optimistic views about the future...",
-      "translate": "🌍 **Translation:** El texto habla sobre la coordinación de inteligencia artificial...",
-      "ner": "👤 **Entities Found:** Organizations: Nooterra, HuggingFace | Concepts: AI agents, workflows | Technologies: neural networks",
-      "generate": "💡 **Answer:** Based on my analysis, this involves coordinating multiple specialized AI models to work together on complex tasks...",
-      "embedding": "🔍 **Semantic Search:** Found 3 relevant documents with similarity scores > 0.85",
+      "summarize": "📝 **Summary:** The text discusses key points about AI coordination and multi-agent systems. Main themes include distributed intelligence, workflow orchestration, and the future of autonomous AI collaboration.",
+      "sentiment": "😊 **Sentiment Analysis:** Positive (87% confidence)\n\n• Overall tone: Optimistic and forward-looking\n• Key emotions: Excitement, curiosity, trust\n• No negative indicators detected",
+      "translate": "🌍 **Translation (Spanish):**\n\nEl texto analiza puntos clave sobre la coordinación de IA y sistemas multi-agente. Los temas principales incluyen inteligencia distribuida, orquestación de flujos de trabajo y el futuro de la colaboración autónoma de IA.",
+      "ner": "👤 **Entities Extracted:**\n\n**Organizations:** Nooterra, HuggingFace, OpenAI\n**Technologies:** Neural networks, LLMs, Transformers\n**Concepts:** Multi-agent coordination, Workflow DAGs\n**People:** None detected",
+      "generate": "💡 **Response:**\n\nBased on my analysis, multi-agent AI coordination involves orchestrating multiple specialized AI models to work together on complex tasks. Each agent contributes its unique capabilities:\n\n1. **Discovery** - Agents find each other based on needed capabilities\n2. **Orchestration** - A coordinator chains agents into workflows\n3. **Execution** - Each agent processes its part and passes results\n4. **Settlement** - Payments flow to agents that contributed",
+      "embedding": "🔍 **Semantic Search Results:**\n\n1. \"Multi-agent systems in practice\" (similarity: 0.94)\n2. \"Coordinating AI workflows at scale\" (similarity: 0.89)\n3. \"The future of autonomous agents\" (similarity: 0.86)",
+      "ocr": "📄 **Extracted Text:**\n\nDocument successfully processed. Found 247 words across 3 paragraphs. Main topics detected: Technology, AI, Innovation.",
+      "detect": "👁️ **Objects Detected:**\n\n• Person (confidence: 0.96) - bounding box: [120, 45, 380, 520]\n• Laptop (confidence: 0.92) - bounding box: [200, 300, 450, 480]\n• Coffee cup (confidence: 0.87) - bounding box: [50, 350, 100, 400]",
+      "creative": "🎨 **Image Generated:**\n\n[A stunning visualization of interconnected AI agents, glowing nodes connected by streams of data, cosmic neural network aesthetic]",
     };
 
     const resultKey = Object.keys(fakeResults).find(k => node.capability.includes(k)) || "generate";
@@ -293,14 +521,14 @@ export default function Playground() {
     for (const node of nodes) {
       const shouldContinue = await simulateAgentExecution(node, query);
       if (!shouldContinue) {
-        return; // Paused for user input
+        return;
       }
       await sleep(500);
     }
     
     addMessage({
       type: "system",
-      content: "🎉 **Workflow Complete!** All agents have finished processing your request.",
+      content: "🎉 **Workflow Complete!** All agents have finished processing your request.\n\n💡 *Tip: Click \"Share\" to save and share this session!*",
     });
     
     setIsProcessing(false);
@@ -315,23 +543,24 @@ export default function Playground() {
     setIsProcessing(true);
     setWorkflow([]);
 
-    addMessage({ type: "user", content: query });
+    const hasFile = uploadedFile !== null;
+    addMessage({ type: "user", content: hasFile ? `${query}\n\n📎 With file: ${uploadedFile?.name}` : query });
 
     // Phase 1: Searching for agents
     setSearchingPhase("Searching for available agents...");
     addMessage({
       type: "system",
-      content: `🔍 Searching the Nooterra network for ${isPremium ? "all" : "free"} agents that can help...`,
+      content: `🔍 Searching the Nooterra network for ${isPremium ? "all" : "free"} agents that can help...${hasFile ? "\n📎 Analyzing uploaded file..." : ""}`,
     });
     
     await sleep(1000);
 
-    const matchedAgents = await findAgentsForQuery(query);
+    const matchedAgents = await findAgentsForQuery(query, hasFile);
     
     setSearchingPhase("Building workflow...");
     addMessage({
       type: "system",
-      content: `✨ Found **${matchedAgents.length} agents** that can help!\n\n${matchedAgents.map(a => `• **${a.name}** - ${a.description}`).join("\n")}`,
+      content: `✨ Found **${matchedAgents.length} agents** that can help!\n\n${matchedAgents.map(a => `• **${a.name}** - ${a.description} ${a.price === 0 ? '(FREE)' : `(${a.price}¢)`}`).join("\n")}`,
     });
 
     await sleep(800);
@@ -347,6 +576,7 @@ export default function Playground() {
     });
 
     await sleep(500);
+    clearFile();
 
     // Phase 3: Execute workflow
     await runWorkflow(workflowNodes, query);
@@ -361,15 +591,13 @@ export default function Playground() {
     
     addMessage({ type: "user", content: answer });
 
-    // Update the node and continue
     const node = workflow.find(n => n.id === pendingQuestion.nodeId);
     if (node) {
       updateWorkflowNode(node.id, { status: "running", question: undefined, agent: { ...node.agent!, status: "working" } });
       
       await sleep(1500);
 
-      // Simulate success with the answer
-      const result = `🌍 **Translation (to ${answer}):** El texto habla sobre la coordinación de inteligencia artificial y sistemas multi-agente...`;
+      const result = `🌍 **Translation (to ${answer}):**\n\nEl texto analiza puntos clave sobre la coordinación de IA y sistemas multi-agente. Los temas principales incluyen inteligencia distribuida y el futuro de la colaboración autónoma de IA.`;
       
       updateWorkflowNode(node.id, { 
         status: "success", 
@@ -385,7 +613,6 @@ export default function Playground() {
 
       setPendingQuestion(null);
 
-      // Continue with remaining nodes
       const nodeIndex = workflow.findIndex(n => n.id === node.id);
       const remainingNodes = workflow.slice(nodeIndex + 1);
       
@@ -410,7 +637,30 @@ export default function Playground() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#050508]">
+    <div 
+      className="min-h-screen bg-[#050508]"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      <AnimatePresence>
+        {isDragging && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-[#050508]/90 flex items-center justify-center"
+          >
+            <div className="p-12 border-2 border-dashed border-[#4f7cff] rounded-2xl bg-[#4f7cff]/10">
+              <Upload className="w-16 h-16 text-[#4f7cff] mx-auto mb-4" />
+              <p className="text-xl text-white font-semibold">Drop your file here</p>
+              <p className="text-[#909098] mt-2">Images, documents, or text files</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="border-b border-[#4f7cff]/10 bg-[#0a0a12]/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -419,7 +669,18 @@ export default function Playground() {
             <span className="font-semibold text-white">Nooterra Playground</span>
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Share button */}
+            {messages.length > 0 && (
+              <button
+                onClick={generateShareUrl}
+                className="flex items-center gap-2 px-4 py-2 bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg text-[#909098] hover:text-white hover:border-[#4f7cff]/40 transition-all"
+              >
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Share</span>
+              </button>
+            )}
+            
             <button
               onClick={() => setIsPremium(!isPremium)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
@@ -429,12 +690,12 @@ export default function Playground() {
               }`}
             >
               {isPremium ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-              {isPremium ? "Premium Mode" : "Free Tier"}
+              <span className="hidden sm:inline">{isPremium ? "Premium" : "Free"}</span>
             </button>
             
             <Link to="/signup" className="btn-neural px-4 py-2 text-sm">
               <Sparkles className="w-4 h-4" />
-              Sign Up
+              <span className="hidden sm:inline">Sign Up</span>
             </Link>
           </div>
         </div>
@@ -455,8 +716,24 @@ export default function Playground() {
                     Try the Nooterra Network
                   </h2>
                   <p className="text-[#909098] mb-6 max-w-md mx-auto">
-                    Ask anything and watch specialized AI agents collaborate in real-time to answer your question.
+                    Ask anything, upload files, or use voice input. Watch specialized AI agents collaborate in real-time.
                   </p>
+                  
+                  {/* Features */}
+                  <div className="flex flex-wrap justify-center gap-4 mb-8">
+                    <div className="flex items-center gap-2 text-sm text-[#707090]">
+                      <Mic className="w-4 h-4 text-[#4f7cff]" />
+                      Voice Input
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-[#707090]">
+                      <Upload className="w-4 h-4 text-[#4f7cff]" />
+                      File Upload
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-[#707090]">
+                      <Share2 className="w-4 h-4 text-[#4f7cff]" />
+                      Share Sessions
+                    </div>
+                  </div>
                   
                   <div className="flex flex-wrap gap-2 justify-center">
                     {exampleQueries.map((q, i) => (
@@ -477,7 +754,7 @@ export default function Playground() {
                         <span className="font-medium text-sm">Free Tier</span>
                       </div>
                       <p className="text-[#707090] text-sm">
-                        You have access to 6 free agents. Upgrade for image generation, audio transcription, and more!
+                        You have access to {FREE_AGENTS.length} free agents. Upgrade for image generation, audio transcription, and more!
                       </p>
                     </div>
                   )}
@@ -497,6 +774,8 @@ export default function Playground() {
                         ? "bg-[#4f7cff] text-white"
                         : msg.type === "question"
                         ? "bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-white"
+                        : msg.type === "file"
+                        ? "bg-[#10b981]/10 border border-[#10b981]/30 text-white"
                         : msg.type === "agent"
                         ? "bg-[#0f0f18] border border-[#4f7cff]/20 text-white"
                         : "bg-[#0f0f18] border border-[#4f7cff]/10 text-[#909098]"
@@ -507,8 +786,16 @@ export default function Playground() {
                         {msg.type === "agent" && <Bot className="w-3 h-3" />}
                         {msg.type === "system" && <Zap className="w-3 h-3" />}
                         {msg.type === "question" && <HelpCircle className="w-3 h-3 text-[#f59e0b]" />}
-                        <span>{msg.type === "system" ? "System" : msg.agent?.name || "Agent"}</span>
+                        {msg.type === "file" && <FileText className="w-3 h-3 text-[#10b981]" />}
+                        <span>{msg.type === "system" ? "System" : msg.type === "file" ? "File" : msg.agent?.name || "Agent"}</span>
                       </div>
+                    )}
+                    {msg.file?.preview && (
+                      <img 
+                        src={msg.file.preview} 
+                        alt={msg.file.name}
+                        className="max-w-[200px] rounded-lg mb-2"
+                      />
                     )}
                     <div 
                       className="text-sm whitespace-pre-wrap"
@@ -536,6 +823,26 @@ export default function Playground() {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Uploaded file preview */}
+            {uploadedFile && (
+              <div className="mb-3 p-3 bg-[#0f0f18] border border-[#10b981]/30 rounded-xl flex items-center gap-3">
+                {uploadedFile.preview ? (
+                  <img src={uploadedFile.preview} alt={uploadedFile.name} className="w-12 h-12 rounded object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded bg-[#10b981]/20 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-[#10b981]" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-sm truncate">{uploadedFile.name}</div>
+                  <div className="text-[#707090] text-xs">{formatFileSize(uploadedFile.size)}</div>
+                </div>
+                <button onClick={clearFile} className="p-1 text-[#707090] hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             {/* Input */}
             {pendingQuestion ? (
               <form onSubmit={handleQuestionAnswer} className="flex gap-3">
@@ -559,17 +866,56 @@ export default function Playground() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleSubmit} className="flex gap-3">
+              <form onSubmit={handleSubmit} className="flex gap-2">
+                {/* File upload button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-3 bg-[#0f0f18] border border-[#4f7cff]/20 rounded-xl text-[#707090] hover:text-white hover:border-[#4f7cff]/40 transition-all"
+                  title="Upload file"
+                >
+                  <Upload className="w-5 h-5" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  accept="image/*,.txt,.pdf,.doc,.docx"
+                  className="hidden"
+                />
+                
+                {/* Voice input button */}
+                {voiceSupported && (
+                  <button
+                    type="button"
+                    onClick={isListening ? stopListening : startListening}
+                    className={`p-3 rounded-xl transition-all ${
+                      isListening
+                        ? "bg-[#ff6b6b] text-white animate-pulse"
+                        : "bg-[#0f0f18] border border-[#4f7cff]/20 text-[#707090] hover:text-white hover:border-[#4f7cff]/40"
+                    }`}
+                    title={isListening ? "Stop listening" : "Voice input"}
+                  >
+                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  </button>
+                )}
+                
+                {/* Text input */}
                 <div className="flex-1 relative">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask anything... AI agents will collaborate to help"
-                    className="w-full bg-[#0f0f18] border border-[#4f7cff]/20 rounded-xl px-4 py-3 text-white placeholder-[#707090] focus:outline-none focus:border-[#4f7cff]"
+                    placeholder={isListening ? "Listening..." : "Ask anything... (or drop a file)"}
+                    className={`w-full bg-[#0f0f18] border rounded-xl px-4 py-3 text-white placeholder-[#707090] focus:outline-none transition-all ${
+                      isListening
+                        ? "border-[#ff6b6b]/50 focus:border-[#ff6b6b]"
+                        : "border-[#4f7cff]/20 focus:border-[#4f7cff]"
+                    }`}
                     disabled={isProcessing}
                   />
                 </div>
+                
                 <button
                   type="submit"
                   disabled={!input.trim() || isProcessing}
@@ -704,7 +1050,73 @@ export default function Playground() {
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setShowShareModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#0a0a12] border border-[#4f7cff]/20 rounded-2xl p-6 max-w-md w-full"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Share2 className="w-5 h-5 text-[#4f7cff]" />
+                  Share Session
+                </h2>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="text-[#707090] hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-[#909098] text-sm mb-4">
+                Share this link to let others see your conversation and workflow:
+              </p>
+
+              <div className="flex items-center gap-2 mb-6">
+                <input
+                  type="text"
+                  value={shareUrl}
+                  readOnly
+                  className="flex-1 bg-[#0f0f18] border border-[#4f7cff]/20 rounded-lg px-4 py-3 text-white text-sm"
+                />
+                <button
+                  onClick={copyShareUrl}
+                  className={`p-3 rounded-lg transition-all ${
+                    copied
+                      ? "bg-[#39ff8e] text-black"
+                      : "bg-[#4f7cff] hover:bg-[#4f7cff]/80 text-white"
+                  }`}
+                >
+                  {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={downloadTranscript}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 border border-[#4f7cff]/20 text-[#909098] rounded-xl hover:bg-[#4f7cff]/10 transition-all"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Transcript
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-
