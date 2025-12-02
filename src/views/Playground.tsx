@@ -63,10 +63,11 @@ interface WorkflowNode {
   name: string;
   capability: string;
   agent?: Agent;
-  status: "pending" | "ready" | "running" | "waiting_input" | "success" | "failed";
+  status: "pending" | "ready" | "running" | "waiting_input" | "success" | "failed" | "needs_data";
   dependsOn: string[];
   result?: any;
   question?: string;
+  missingInputs?: InputRequirement[];
 }
 
 interface UploadedFile {
@@ -75,6 +76,137 @@ interface UploadedFile {
   size: number;
   preview?: string;
   data?: string;
+}
+
+// Input schema system for non-conversational agents
+interface InputRequirement {
+  field: string;
+  type: "text" | "image" | "audio" | "file" | "number" | "select";
+  description: string;
+  required: boolean;
+  options?: string[];  // For select type
+  examples?: string[];
+  placeholder?: string;
+}
+
+// Input schemas for agents that CAN'T ask for data themselves
+const AGENT_INPUT_SCHEMAS: Record<string, InputRequirement[]> = {
+  "cap.vision.detect.detr.v1": [
+    {
+      field: "image",
+      type: "image",
+      description: "Image to analyze for object detection",
+      required: true,
+      placeholder: "Upload or drag-drop an image",
+    },
+  ],
+  "cap.vision.classify.vit.v1": [
+    {
+      field: "image",
+      type: "image",
+      description: "Image to classify",
+      required: true,
+    },
+  ],
+  "cap.document.ocr.trocr.v1": [
+    {
+      field: "image",
+      type: "image",
+      description: "Document image to extract text from",
+      required: true,
+    },
+  ],
+  "cap.audio.transcribe.whisper.v1": [
+    {
+      field: "audio",
+      type: "audio",
+      description: "Audio file to transcribe",
+      required: true,
+    },
+    {
+      field: "language",
+      type: "select",
+      description: "Language (auto-detect if not specified)",
+      required: false,
+      options: ["Auto", "English", "Spanish", "French", "German", "Chinese", "Japanese"],
+    },
+  ],
+  "cap.translate.opus.v1": [
+    {
+      field: "text",
+      type: "text",
+      description: "Text to translate",
+      required: true,
+    },
+    {
+      field: "target_language",
+      type: "select",
+      description: "Target language",
+      required: true,
+      options: ["Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic"],
+    },
+  ],
+  "cap.creative.generate.sdxl.v1": [
+    {
+      field: "prompt",
+      type: "text",
+      description: "Describe the image you want to generate",
+      required: true,
+      placeholder: "A beautiful sunset over mountains, digital art style...",
+      examples: ["A cyberpunk cityscape at night", "A serene forest with magical creatures"],
+    },
+    {
+      field: "size",
+      type: "select",
+      description: "Output image size",
+      required: false,
+      options: ["512x512", "768x768", "1024x1024"],
+    },
+  ],
+  "cap.embedding.encode.minilm.v1": [
+    {
+      field: "text",
+      type: "text",
+      description: "Text to convert to embeddings",
+      required: true,
+    },
+  ],
+};
+
+// Check if an agent needs specific input types
+function getAgentInputRequirements(capability: string): InputRequirement[] | null {
+  return AGENT_INPUT_SCHEMAS[capability] || null;
+}
+
+// Check if we have the required inputs for an agent
+function validateAgentInputs(
+  capability: string,
+  inputs: { text?: string; image?: UploadedFile | null; audio?: UploadedFile | null; selectedOptions?: Record<string, string> }
+): { valid: boolean; missing: InputRequirement[] } {
+  const schema = AGENT_INPUT_SCHEMAS[capability];
+  
+  if (!schema) {
+    // No schema = text-based agent, just needs text input
+    return { valid: !!inputs.text, missing: [] };
+  }
+  
+  const missing: InputRequirement[] = [];
+  
+  for (const req of schema) {
+    if (!req.required) continue;
+    
+    if (req.type === "image" && !inputs.image) {
+      missing.push(req);
+    } else if (req.type === "audio" && !inputs.audio) {
+      missing.push(req);
+    } else if (req.type === "text" && !inputs.text) {
+      missing.push(req);
+    } else if (req.type === "select" && !inputs.selectedOptions?.[req.field]) {
+      missing.push(req);
+    }
+  }
+  
+  return { valid: missing.length === 0, missing };
 }
 
 // Simulated free agents for demo
@@ -192,6 +324,15 @@ export default function Playground() {
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  
+  // Data request state (for non-conversational agents)
+  const [pendingDataRequest, setPendingDataRequest] = useState<{
+    nodeId: string;
+    nodeName: string;
+    requirements: InputRequirement[];
+  } | null>(null);
+  const [pendingDataResponses, setPendingDataResponses] = useState<Record<string, string>>({});
+  const [dataInputValues, setDataInputValues] = useState<Record<string, string>>({});
 
   // Check for shared session on mount
   useEffect(() => {
@@ -454,6 +595,53 @@ export default function Playground() {
   };
 
   const simulateAgentExecution = async (node: WorkflowNode, query: string) => {
+    // FIRST: Check if this agent has specific input requirements (non-conversational agents)
+    const inputRequirements = getAgentInputRequirements(node.capability);
+    
+    if (inputRequirements && inputRequirements.length > 0) {
+      // Check what inputs we have vs what we need
+      const validation = validateAgentInputs(node.capability, {
+        text: query,
+        image: uploadedFile?.type.startsWith('image/') ? uploadedFile : null,
+        audio: uploadedFile?.type.startsWith('audio/') ? uploadedFile : null,
+        selectedOptions: pendingDataResponses,
+      });
+      
+      if (!validation.valid) {
+        // Agent needs specific data it can't ask for!
+        updateWorkflowNode(node.id, { 
+          status: "needs_data", 
+          missingInputs: validation.missing,
+          agent: { ...node.agent!, status: "waiting" }
+        });
+        
+        setPendingDataRequest({
+          nodeId: node.id,
+          nodeName: node.name,
+          requirements: validation.missing,
+        });
+        
+        const requirementsList = validation.missing.map(r => {
+          let req = `• **${r.field}** (${r.type}): ${r.description}`;
+          if (r.options) {
+            req += `\n  Options: ${r.options.join(", ")}`;
+          }
+          if (r.examples) {
+            req += `\n  Examples: ${r.examples.join(", ")}`;
+          }
+          return req;
+        }).join("\n");
+        
+        addMessage({
+          type: "question",
+          content: `⚠️ **${node.name}** requires specific input:\n\n${requirementsList}\n\n*This agent cannot process without the required data.*`,
+          agent: node.agent,
+        });
+        
+        return false; // Workflow paused
+      }
+    }
+    
     updateWorkflowNode(node.id, { status: "running", agent: { ...node.agent!, status: "working" } });
     
     addMessage({
@@ -464,8 +652,8 @@ export default function Playground() {
 
     await sleep(1500 + Math.random() * 1500);
 
-    // Some agents might ask follow-up questions
-    if (node.capability.includes("translate") && !query.toLowerCase().includes("spanish") && !query.toLowerCase().includes("french")) {
+    // Conversational agents (like translators) can ask follow-up questions
+    if (node.capability.includes("translate") && !query.toLowerCase().includes("spanish") && !query.toLowerCase().includes("french") && !pendingDataResponses?.target_language) {
       updateWorkflowNode(node.id, { 
         status: "waiting_input", 
         question: "What language would you like me to translate to?",
@@ -593,6 +781,9 @@ export default function Playground() {
 
     const node = workflow.find(n => n.id === pendingQuestion.nodeId);
     if (node) {
+      // Store the response for validation
+      setPendingDataResponses(prev => ({ ...prev, target_language: answer }));
+      
       updateWorkflowNode(node.id, { status: "running", question: undefined, agent: { ...node.agent!, status: "working" } });
       
       await sleep(1500);
@@ -613,6 +804,107 @@ export default function Playground() {
 
       setPendingQuestion(null);
 
+      const nodeIndex = workflow.findIndex(n => n.id === node.id);
+      const remainingNodes = workflow.slice(nodeIndex + 1);
+      
+      if (remainingNodes.length > 0) {
+        await sleep(500);
+        await runWorkflow(remainingNodes, "");
+      } else {
+        addMessage({
+          type: "system",
+          content: "🎉 **Workflow Complete!** All agents have finished processing your request.",
+        });
+        setIsProcessing(false);
+      }
+    }
+  };
+
+  // Handle data request submission (for non-conversational agents)
+  const handleDataRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingDataRequest) return;
+
+    const allFilled = pendingDataRequest.requirements.every(req => {
+      if (req.type === "image") return uploadedFile?.type.startsWith('image/');
+      if (req.type === "audio") return uploadedFile?.type.startsWith('audio/');
+      return dataInputValues[req.field]?.trim();
+    });
+
+    if (!allFilled) {
+      addMessage({
+        type: "system",
+        content: "⚠️ Please provide all required inputs before continuing.",
+      });
+      return;
+    }
+
+    // Store all the responses
+    const newResponses = { ...pendingDataResponses };
+    for (const req of pendingDataRequest.requirements) {
+      if (dataInputValues[req.field]) {
+        newResponses[req.field] = dataInputValues[req.field];
+      }
+    }
+    setPendingDataResponses(newResponses);
+
+    const summaryParts = pendingDataRequest.requirements.map(req => {
+      if (req.type === "image" && uploadedFile) return `📷 Image: ${uploadedFile.name}`;
+      if (req.type === "audio" && uploadedFile) return `🎵 Audio: ${uploadedFile.name}`;
+      return `${req.field}: ${dataInputValues[req.field]}`;
+    });
+    
+    addMessage({ 
+      type: "user", 
+      content: `Provided data:\n${summaryParts.join("\n")}` 
+    });
+
+    const node = workflow.find(n => n.id === pendingDataRequest.nodeId);
+    if (node) {
+      updateWorkflowNode(node.id, { 
+        status: "running", 
+        missingInputs: undefined,
+        agent: { ...node.agent!, status: "working" } 
+      });
+
+      addMessage({
+        type: "agent",
+        content: `🤖 **${node.name}** now has all required data. Processing...`,
+        agent: node.agent,
+      });
+
+      await sleep(2000);
+
+      // Generate contextual result based on agent type
+      let result = "";
+      if (node.capability.includes("ocr")) {
+        result = "📄 **Extracted Text:**\n\n\"The document contains important information about...\"\n\n• Found 312 words\n• 4 paragraphs detected\n• Confidence: 94%";
+      } else if (node.capability.includes("detect")) {
+        result = "👁️ **Objects Detected:**\n\n• Person (96%) - Center of frame\n• Computer (89%) - Lower left\n• Plant (78%) - Background\n\n3 objects detected with high confidence.";
+      } else if (node.capability.includes("transcribe") || node.capability.includes("whisper")) {
+        result = "🎤 **Transcription:**\n\n\"Hello and welcome to this demo of multi-agent AI coordination...\"\n\n• Duration: 2:34\n• Language: English (detected)\n• Confidence: 97%";
+      } else if (node.capability.includes("creative")) {
+        result = "🎨 **Image Generated:**\n\n[Generated based on your prompt]\n\n• Size: 512x512\n• Style: As requested\n• Ready for download";
+      } else {
+        result = `✅ **${node.name}** processed your data successfully.`;
+      }
+
+      updateWorkflowNode(node.id, { 
+        status: "success", 
+        result,
+        agent: { ...node.agent!, status: "done" }
+      });
+
+      addMessage({
+        type: "agent",
+        content: `✅ **${node.name}** completed!\n\n${result}`,
+        agent: node.agent,
+      });
+
+      setPendingDataRequest(null);
+      setDataInputValues({});
+
+      // Continue with remaining nodes
       const nodeIndex = workflow.findIndex(n => n.id === node.id);
       const remainingNodes = workflow.slice(nodeIndex + 1);
       
@@ -844,7 +1136,115 @@ export default function Playground() {
             )}
 
             {/* Input */}
-            {pendingQuestion ? (
+            {pendingDataRequest ? (
+              // Non-conversational agent needs specific data
+              <form onSubmit={handleDataRequestSubmit} className="space-y-3">
+                <div className="p-4 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-xl">
+                  <div className="flex items-center gap-2 text-[#f59e0b] mb-3">
+                    <AlertCircle className="w-5 h-5" />
+                    <span className="font-semibold">{pendingDataRequest.nodeName} requires input</span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {pendingDataRequest.requirements.map((req) => (
+                      <div key={req.field}>
+                        <label className="block text-sm text-[#909098] mb-1">
+                          {req.description} {req.required && <span className="text-[#ff6b6b]">*</span>}
+                        </label>
+                        
+                        {req.type === "image" && (
+                          <div className="flex items-center gap-3">
+                            {uploadedFile?.type.startsWith('image/') ? (
+                              <div className="flex items-center gap-2 p-2 bg-[#10b981]/10 border border-[#10b981]/30 rounded-lg">
+                                <Image className="w-4 h-4 text-[#10b981]" />
+                                <span className="text-sm text-white">{uploadedFile.name}</span>
+                                <CheckCircle className="w-4 h-4 text-[#10b981]" />
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="px-4 py-2 border border-dashed border-[#4f7cff]/40 rounded-lg text-[#4f7cff] hover:bg-[#4f7cff]/10 transition-all text-sm flex items-center gap-2"
+                              >
+                                <Upload className="w-4 h-4" />
+                                Upload Image
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {req.type === "audio" && (
+                          <div className="flex items-center gap-3">
+                            {uploadedFile?.type.startsWith('audio/') ? (
+                              <div className="flex items-center gap-2 p-2 bg-[#10b981]/10 border border-[#10b981]/30 rounded-lg">
+                                <Volume2 className="w-4 h-4 text-[#10b981]" />
+                                <span className="text-sm text-white">{uploadedFile.name}</span>
+                                <CheckCircle className="w-4 h-4 text-[#10b981]" />
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="px-4 py-2 border border-dashed border-[#4f7cff]/40 rounded-lg text-[#4f7cff] hover:bg-[#4f7cff]/10 transition-all text-sm flex items-center gap-2"
+                              >
+                                <Upload className="w-4 h-4" />
+                                Upload Audio
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {req.type === "select" && req.options && (
+                          <select
+                            value={dataInputValues[req.field] || ""}
+                            onChange={(e) => setDataInputValues(prev => ({ ...prev, [req.field]: e.target.value }))}
+                            className="w-full bg-[#0a0a12] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white text-sm"
+                          >
+                            <option value="">Select {req.field}...</option>
+                            {req.options.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        )}
+                        
+                        {req.type === "text" && (
+                          <input
+                            type="text"
+                            value={dataInputValues[req.field] || ""}
+                            onChange={(e) => setDataInputValues(prev => ({ ...prev, [req.field]: e.target.value }))}
+                            placeholder={req.placeholder || `Enter ${req.field}...`}
+                            className="w-full bg-[#0a0a12] border border-[#4f7cff]/20 rounded-lg px-3 py-2 text-white text-sm placeholder-[#707090]"
+                          />
+                        )}
+                        
+                        {req.examples && req.examples.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {req.examples.map(ex => (
+                              <button
+                                key={ex}
+                                type="button"
+                                onClick={() => setDataInputValues(prev => ({ ...prev, [req.field]: ex }))}
+                                className="text-xs px-2 py-1 bg-[#4f7cff]/10 text-[#4f7cff] rounded hover:bg-[#4f7cff]/20 transition-all"
+                              >
+                                {ex}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-[#f59e0b] hover:bg-[#f59e0b]/80 text-black rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                >
+                  <Send className="w-5 h-5" />
+                  Provide Data & Continue
+                </button>
+              </form>
+            ) : pendingQuestion ? (
               <form onSubmit={handleQuestionAnswer} className="flex gap-3">
                 <div className="flex-1 relative">
                   <input
@@ -970,6 +1370,8 @@ export default function Playground() {
                               ? "bg-[#4f7cff]/5 border-[#4f7cff]/30"
                               : node.status === "waiting_input"
                               ? "bg-[#f59e0b]/5 border-[#f59e0b]/30"
+                              : node.status === "needs_data"
+                              ? "bg-[#ff6b6b]/5 border-[#ff6b6b]/30 animate-pulse"
                               : node.status === "failed"
                               ? "bg-[#ff6b6b]/5 border-[#ff6b6b]/30"
                               : "bg-[#0f0f18] border-[#4f7cff]/10"
@@ -983,11 +1385,14 @@ export default function Playground() {
                                 ? "bg-[#4f7cff]/20 text-[#4f7cff]"
                                 : node.status === "waiting_input"
                                 ? "bg-[#f59e0b]/20 text-[#f59e0b]"
+                                : node.status === "needs_data"
+                                ? "bg-[#ff6b6b]/20 text-[#ff6b6b]"
                                 : "bg-[#4f7cff]/10 text-[#707090]"
                             }`}>
                               {node.status === "success" && <CheckCircle className="w-4 h-4" />}
                               {node.status === "running" && <Loader2 className="w-4 h-4 animate-spin" />}
                               {node.status === "waiting_input" && <HelpCircle className="w-4 h-4" />}
+                              {node.status === "needs_data" && <Upload className="w-4 h-4" />}
                               {node.status === "pending" && <Clock className="w-4 h-4" />}
                               {node.status === "ready" && <Play className="w-4 h-4" />}
                               {node.status === "failed" && <AlertCircle className="w-4 h-4" />}
@@ -999,10 +1404,16 @@ export default function Playground() {
                               <div className="text-[#707090] text-xs truncate">
                                 {node.status === "running" ? "Processing..." :
                                  node.status === "waiting_input" ? "Needs your input" :
+                                 node.status === "needs_data" ? "⚠️ Requires data" :
                                  node.status === "success" ? "Complete" :
                                  node.status === "pending" ? "Waiting..." :
                                  node.status === "ready" ? "Ready" : "Failed"}
                               </div>
+                              {node.status === "needs_data" && node.missingInputs && (
+                                <div className="mt-1 text-[10px] text-[#ff6b6b]">
+                                  Needs: {node.missingInputs.map(m => m.type).join(", ")}
+                                </div>
+                              )}
                             </div>
                             {node.agent?.price === 0 && (
                               <span className="text-[10px] px-2 py-0.5 bg-[#39ff8e]/10 text-[#39ff8e] rounded">
