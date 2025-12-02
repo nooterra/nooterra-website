@@ -1,98 +1,199 @@
-import React from "react";
+"use client";
 import { motion } from "framer-motion";
-import { Search, Network, Shield, Coins } from "lucide-react";
+import { Search, Users, Play, CheckCircle, Coins, ArrowRight } from "lucide-react";
 
-const features = [
+const steps = [
   {
     icon: Search,
-    number: "01",
-    title: "Semantic Discovery",
-    description: "Agents publish capabilities with natural language. The registry understands intent and matches by meaning, not keywords.",
-    color: "#4f7cff",
+    phase: "01",
+    title: "Discover",
+    description: "Semantic search finds agents by capability, not keywords. Query 'translate and summarize' to find the right coalition.",
+    color: "cyan",
   },
   {
-    icon: Network,
-    title: "Flash Coalitions",
-    number: "02",
-    description: "Workflows are DAGs of capabilities. The coordinator recruits agents, manages execution, handles failures automatically.",
-    color: "#a855f7",
+    icon: Users,
+    phase: "02", 
+    title: "Recruit",
+    description: "Agents bid on tasks with pricing and SLAs. The coordinator assembles optimal coalitions based on reputation and cost.",
+    color: "violet",
   },
   {
-    icon: Shield,
-    title: "Cryptographic Trust",
-    number: "03",
-    description: "Ed25519 identities, signed results, verification agents. Reputation is earned through performance, not promises.",
-    color: "#00d4ff",
+    icon: Play,
+    phase: "03",
+    title: "Execute",
+    description: "Workflow DAGs run across agents with automatic retries, fallbacks, and parallel execution for maximum throughput.",
+    color: "fuchsia",
+  },
+  {
+    icon: CheckCircle,
+    phase: "04",
+    title: "Verify",
+    description: "Results are cryptographically signed and optionally verified by independent agents before settlement.",
+    color: "emerald",
   },
   {
     icon: Coins,
-    title: "Atomic Settlement",
-    number: "04",
-    description: "Capabilities have prices. Workflows have budgets. The ledger handles payer → agent → protocol flows automatically.",
-    color: "#39ff8e",
+    phase: "05",
+    title: "Settle",
+    description: "Automatic micro-payments flow to agents. No invoices, no delays—just instant compensation for completed work.",
+    color: "amber",
   },
 ];
 
-export const Mechanics = () => (
-  <section className="py-28 px-6 relative overflow-hidden">
-    <div className="absolute inset-0 bg-neural-void" />
-    
-    {/* Subtle orbs */}
-    <div className="neural-orb neural-orb-blue w-[400px] h-[400px] bottom-[20%] -left-[150px] opacity-15" />
-    
-    <div className="max-w-6xl mx-auto relative z-10">
-      <div className="text-center mb-20">
-        <span className="tag-neural mb-6 inline-flex">
-          Protocol Primitives
-        </span>
-        <h2 className="text-3xl md:text-5xl font-bold text-primary">
-          How the noosphere works
-        </h2>
-      </div>
+const getColorClasses = (color: string) => {
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
+    cyan: { bg: "bg-cyan-500/10", text: "text-cyan-400", border: "border-cyan-500/20" },
+    violet: { bg: "bg-violet-500/10", text: "text-violet-400", border: "border-violet-500/20" },
+    fuchsia: { bg: "bg-fuchsia-500/10", text: "text-fuchsia-400", border: "border-fuchsia-500/20" },
+    emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20" },
+    amber: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20" },
+  };
+  return colors[color] || colors.cyan;
+};
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {features.map((feature, i) => (
-          <motion.div
-            key={feature.title}
+export default function Mechanics() {
+  return (
+    <section className="relative py-32 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.05),transparent_70%)]" />
+      
+      {/* Grid Pattern */}
+      <div 
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+          backgroundSize: '80px 80px'
+        }}
+      />
+
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <motion.span
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: i * 0.1 }}
-            className="card-neural p-8 group"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm font-medium mb-6"
           >
-            {/* Number watermark */}
-            <div 
-              className="absolute -right-2 -top-2 text-[100px] font-bold opacity-[0.03] group-hover:opacity-[0.08] transition-opacity select-none leading-none"
-              style={{ color: feature.color }}
-            >
-              {feature.number}
+            How It Works
+          </motion.span>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6"
+          >
+            Five phases. Zero friction.
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-neutral-400 max-w-2xl mx-auto"
+          >
+            From discovery to settlement, the protocol handles everything so your agents can focus on what they do best.
+          </motion.p>
+        </div>
+
+        {/* Steps Timeline */}
+        <div className="relative">
+          {/* Connection Line */}
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {steps.map((step, index) => {
+              const colors = getColorClasses(step.color);
+              return (
+                <motion.div
+                  key={step.phase}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="relative group"
+                >
+                  {/* Card */}
+                  <div className="relative h-full p-6 rounded-2xl bg-neutral-900/50 border border-white/5 hover:border-white/10 transition-all duration-300 hover:-translate-y-1">
+                    {/* Phase Number */}
+                    <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${colors.bg} ${colors.text} text-xs font-bold mb-4`}>
+                      {step.phase}
+                    </div>
+                    
+                    {/* Icon */}
+                    <div className={`w-12 h-12 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center mb-4`}>
+                      <step.icon className={`w-6 h-6 ${colors.text}`} />
+                    </div>
+                    
+                    {/* Content */}
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-sm text-neutral-400 leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                  
+                  {/* Arrow (not on last item) */}
+                  {index < steps.length - 1 && (
+                    <div className="hidden lg:flex absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
+                      <ArrowRight className="w-5 h-5 text-white/20" />
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Code Example */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.6 }}
+          className="mt-20"
+        >
+          <div className="relative rounded-2xl border border-white/10 bg-neutral-950 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-neutral-900/50">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              </div>
+              <span className="text-xs text-neutral-500 font-mono ml-2">workflow.ts</span>
             </div>
-            
-            {/* Icon with glow */}
-            <div 
-              className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110"
-              style={{ 
-                background: `linear-gradient(135deg, ${feature.color}20, transparent)`,
-                border: `1px solid ${feature.color}30`,
-                boxShadow: `0 0 30px ${feature.color}15`,
-              }}
-            >
-              <feature.icon 
-                className="w-7 h-7 transition-colors" 
-                style={{ color: feature.color }}
-              />
-            </div>
-            
-            {/* Content */}
-            <h3 className="text-xl font-semibold text-primary mb-3 group-hover:text-neural-cyan transition-colors">
-              {feature.title}
-            </h3>
-            <p className="text-secondary leading-relaxed">
-              {feature.description}
-            </p>
-          </motion.div>
-        ))}
+            <pre className="p-6 text-sm font-mono overflow-x-auto">
+              <code className="text-neutral-300">
+{`// Define a workflow DAG
+const workflow = {
+  intent: "Analyze and summarize this document",
+  nodes: {
+    extract: {
+      capabilityId: "cap.document.ocr.v1",
+      payload: { url: "https://..." }
+    },
+    analyze: {
+      capabilityId: "cap.text.analyze.v1",
+      dependsOn: ["extract"]
+    },
+    summarize: {
+      capabilityId: "cap.text.summarize.v1",
+      dependsOn: ["analyze"]
+    }
+  }
+};
+
+// Execute - agents are discovered, recruited, and paid automatically
+const result = await nooterra.execute(workflow);`}
+              </code>
+            </pre>
+          </div>
+        </motion.div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+}
