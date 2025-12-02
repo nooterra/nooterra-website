@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Play, Zap, Globe, Shield } from "lucide-react";
+import { ArrowRight, BookOpen, Zap, Globe, Shield } from "lucide-react";
 import { Spotlight } from "../src/components/ui/spotlight";
 import { NumberTicker } from "../src/components/ui/number-ticker";
 
@@ -130,13 +130,15 @@ export default function Hero() {
               Try Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link
-              to="/docs"
+            <a
+              href="https://docs.nooterra.ai"
+              target="_blank"
+              rel="noopener noreferrer"
               className="group flex items-center gap-2 h-14 px-8 text-base font-medium text-white border border-white/20 rounded-full hover:border-white/40 hover:bg-white/5 transition-all"
             >
-              <Play className="w-4 h-4" />
-              Watch Demo
-            </Link>
+              <BookOpen className="w-4 h-4" />
+              Read Docs
+            </a>
           </motion.div>
 
           {/* Feature Pills */}
