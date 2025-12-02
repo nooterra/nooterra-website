@@ -86,77 +86,18 @@ export default function Playground() {
     ]);
 
     try {
-      // Detect intent from user query to find specialized agents
-      const query = userMessage.content.toLowerCase();
+      const agentName = "Hermes";
       
-      // Intent detection for specialized tasks
-      const specializedIntents: { keywords: string[]; capability: string; description: string }[] = [
-        { keywords: ["protein", "structure", "fold", "amino acid", "molecular"], capability: "cap.science.protein.v1", description: "protein structure prediction" },
-        { keywords: ["image", "picture", "generate image", "draw", "illustration"], capability: "cap.image.generate.v1", description: "image generation" },
-        { keywords: ["translate", "translation", "convert language"], capability: "cap.text.translate.v1", description: "translation" },
-        { keywords: ["summarize", "summary", "tldr", "shorten"], capability: "cap.text.summarize.v1", description: "summarization" },
-        { keywords: ["code", "programming", "debug", "function", "algorithm"], capability: "cap.code.generate.v1", description: "code generation" },
-        { keywords: ["sentiment", "emotion", "feeling", "mood"], capability: "cap.text.sentiment.v1", description: "sentiment analysis" },
-        { keywords: ["embed", "vector", "similarity"], capability: "cap.embedding.v1", description: "text embeddings" },
-        { keywords: ["extract", "entity", "ner", "names", "places"], capability: "cap.text.ner.v1", description: "entity extraction" },
-        { keywords: ["ocr", "read text", "image text", "document"], capability: "cap.vision.ocr.v1", description: "text extraction from images" },
-        { keywords: ["speech", "audio", "transcribe", "voice"], capability: "cap.audio.transcribe.v1", description: "speech transcription" },
-      ];
+      // Update processing message
+      setMessages((prev) => 
+        prev.map((m) => 
+          m.id === processingId 
+            ? { ...m, content: `Connecting to ${agentName}...` }
+            : m
+        )
+      );
       
-      // Find matching specialized capability
-      let selectedCapability = "cap.llm.chat.v1";
-      let intentDescription = "general conversation";
-      
-      for (const intent of specializedIntents) {
-        if (intent.keywords.some(kw => query.includes(kw))) {
-          selectedCapability = intent.capability;
-          intentDescription = intent.description;
-          break;
-        }
-      }
-      
-      // First, discover agents for the detected capability
-      const discoverRes = await fetch(`${COORD_URL}/v1/discover?capabilityId=${selectedCapability}&limit=5`, {
-        headers: { "x-api-key": "playground-free-tier" },
-      });
-      
-      let agentName = "Nooterra";
-      let foundSpecialized = false;
-      
-      if (discoverRes.ok) {
-        const discoverData = await discoverRes.json();
-        if (discoverData.results?.length > 0) {
-          const topAgent = discoverData.results[0];
-          agentName = topAgent.did?.split(":").pop() || "Specialized Agent";
-          foundSpecialized = selectedCapability !== "cap.llm.chat.v1";
-          
-          // Update processing message with agent info
-          setMessages((prev) => 
-            prev.map((m) => 
-              m.id === processingId 
-                ? { ...m, content: foundSpecialized 
-                    ? `Found specialized agent for ${intentDescription}! Routing to ${agentName}...` 
-                    : `Connecting to ${agentName}...` 
-                  }
-                : m
-            )
-          );
-        }
-      }
-      
-      // If no specialized agent found, fall back to chat
-      if (!foundSpecialized && selectedCapability !== "cap.llm.chat.v1") {
-        selectedCapability = "cap.llm.chat.v1";
-        setMessages((prev) => 
-          prev.map((m) => 
-            m.id === processingId 
-              ? { ...m, content: `No specialized ${intentDescription} agent available. Using general AI assistant...` }
-              : m
-          )
-        );
-      }
-      
-      // Call the coordinator to execute
+      // Call the coordinator to execute with chat capability
       const response = await fetch(`${COORD_URL}/v1/workflows/publish`, {
         method: "POST",
         headers: { 
@@ -169,8 +110,8 @@ export default function Playground() {
           maxCents: 0,
           nodes: {
             main: {
-              capabilityId: selectedCapability,
-              payload: { query: userMessage.content, input: userMessage.content },
+              capabilityId: "cap.llm.chat.v1",
+              payload: { query: userMessage.content },
             },
           },
         }),
@@ -212,45 +153,22 @@ export default function Playground() {
       // Remove processing message and add response
       setMessages((prev) => prev.filter((m) => m.id !== processingId));
 
-      if (result?.response) {
+      const responseText = result?.response || result?.output || result?.result || result?.text;
+      
+      if (responseText) {
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now().toString(),
             role: "assistant",
-            content: result.response,
-            timestamp: new Date(),
-            agentName: agentName,
-            status: "complete",
-          },
-        ]);
-      } else if (result?.output || result?.result || result?.text) {
-        // Handle different response formats from specialized agents
-        const content = result.output || result.result || result.text || JSON.stringify(result);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            role: "assistant",
-            content: typeof content === 'string' ? content : JSON.stringify(content, null, 2),
+            content: typeof responseText === 'string' ? responseText : JSON.stringify(responseText, null, 2),
             timestamp: new Date(),
             agentName: agentName,
             status: "complete",
           },
         ]);
       } else {
-        // If no standard response field, show the raw result
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            role: "assistant",
-            content: `Task completed by ${agentName}. Result: ${JSON.stringify(result, null, 2)}`,
-            timestamp: new Date(),
-            agentName: agentName,
-            status: "complete",
-          },
-        ]);
+        throw new Error("No response received from agent");
       }
     } catch (error) {
       setMessages((prev) => prev.filter((m) => m.id !== processingId));
