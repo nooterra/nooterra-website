@@ -28,6 +28,7 @@ import DeployAgent from "./views/dev/DeployAgent";
 import DevAnalytics from "./views/dev/Analytics";
 import Integrations from "./views/dev/Integrations";
 import ImportFromGitHub from "./views/dev/ImportFromGitHub";
+import ImportHuggingFace from "./views/dev/ImportHuggingFace";
 
 // Organization pages
 import OrgLayout from "./views/org/OrgLayout";
@@ -77,6 +78,7 @@ export const AppRoutes = () => (
       <Route path="deploy" element={<DeployAgent />} />
       <Route path="integrations" element={<Integrations />} />
       <Route path="import-github" element={<ImportFromGitHub />} />
+      <Route path="import-huggingface" element={<ImportHuggingFace />} />
       <Route path="analytics" element={<DevAnalytics />} />
       <Route path="keys" element={<Settings />} />
       <Route path="earnings" element={<Usage />} />

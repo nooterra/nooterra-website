@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Plug,
   Zap,
@@ -48,6 +49,24 @@ interface Platform {
 
 const platforms: Platform[] = [
   {
+    id: "huggingface",
+    name: "Hugging Face",
+    description: "Import 200k+ HuggingFace models directly! They become live Nooterra agents instantly.",
+    icon: "🤗",
+    color: "#ffcc00",
+    docsUrl: "https://huggingface.co/docs",
+    features: ["200k+ models", "Instant import", "Auto-collaboration"],
+  },
+  {
+    id: "github",
+    name: "GitHub Repos",
+    description: "Import AI agent repositories from GitHub. Auto-detect capabilities and register as agents.",
+    icon: "🐙",
+    color: "#8b5cf6",
+    docsUrl: "https://docs.github.com",
+    features: ["Auto-detect", "One-click import", "Bulk import"],
+  },
+  {
     id: "n8n",
     name: "n8n",
     description: "Connect your n8n workflows as Nooterra agents. Each workflow becomes a callable capability.",
@@ -55,15 +74,6 @@ const platforms: Platform[] = [
     color: "#ff6d5a",
     docsUrl: "https://docs.n8n.io",
     features: ["Workflow automation", "500+ integrations", "Self-hosted option"],
-  },
-  {
-    id: "huggingface",
-    name: "Hugging Face",
-    description: "Import your Hugging Face models and inference endpoints directly into Nooterra.",
-    icon: "🤗",
-    color: "#ffcc00",
-    docsUrl: "https://huggingface.co/docs",
-    features: ["200k+ models", "Inference API", "Spaces support"],
   },
   {
     id: "langchain",
@@ -104,6 +114,7 @@ const platforms: Platform[] = [
 ];
 
 export default function Integrations() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
@@ -318,8 +329,15 @@ export default function Integrations() {
                   }`}
                   onClick={() => {
                     if (!isConnected) {
-                      setSelectedPlatform(platform);
-                      setShowConnectModal(true);
+                      // Navigate to dedicated import pages for HF and GitHub
+                      if (platform.id === "huggingface") {
+                        navigate("/dev/import-huggingface");
+                      } else if (platform.id === "github") {
+                        navigate("/dev/import-github");
+                      } else {
+                        setSelectedPlatform(platform);
+                        setShowConnectModal(true);
+                      }
                     }
                   }}
                 >
