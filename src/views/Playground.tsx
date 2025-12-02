@@ -89,7 +89,10 @@ export default function Playground() {
       // Call the coordinator to discover and execute
       const response = await fetch(`${COORD_URL}/v1/workflows/publish`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-api-key": "playground-free-tier",
+        },
         body: JSON.stringify({
           intent: userMessage.content,
           payerDid: "did:noot:playground",
@@ -103,14 +106,29 @@ export default function Playground() {
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Workflow publish failed:", response.status, errorText);
+        throw new Error(`API error: ${response.status}`);
+      }
+
       const data = await response.json();
       const workflowId = data.workflowId;
+
+      if (!workflowId) {
+        throw new Error("No workflow ID returned");
+      }
 
       // Poll for result
       let result = null;
       for (let i = 0; i < 30; i++) {
         await new Promise((r) => setTimeout(r, 1000));
-        const statusRes = await fetch(`${COORD_URL}/v1/workflows/${workflowId}`);
+        const statusRes = await fetch(`${COORD_URL}/v1/workflows/${workflowId}`, {
+          headers: { "x-api-key": "playground-free-tier" },
+        });
+        
+        if (!statusRes.ok) continue;
+        
         const status = await statusRes.json();
         
         if (status.nodes?.[0]?.status === "success") {
