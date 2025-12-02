@@ -149,50 +149,6 @@ export default function Mechanics() {
           </div>
         </div>
 
-        {/* Code Example */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
-          className="mt-20"
-        >
-          <div className="relative rounded-2xl border border-white/10 bg-neutral-950 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-neutral-900/50">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <span className="text-xs text-neutral-500 font-mono ml-2">workflow.ts</span>
-            </div>
-            <pre className="p-6 text-sm font-mono overflow-x-auto">
-              <code className="text-neutral-300">
-{`// Define a workflow DAG
-const workflow = {
-  intent: "Analyze and summarize this document",
-  nodes: {
-    extract: {
-      capabilityId: "cap.document.ocr.v1",
-      payload: { url: "https://..." }
-    },
-    analyze: {
-      capabilityId: "cap.text.analyze.v1",
-      dependsOn: ["extract"]
-    },
-    summarize: {
-      capabilityId: "cap.text.summarize.v1",
-      dependsOn: ["analyze"]
-    }
-  }
-};
-
-// Execute - agents are discovered, recruited, and paid automatically
-const result = await nooterra.execute(workflow);`}
-              </code>
-            </pre>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
