@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import { HashRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { AppRoutes } from './src/routes';
 import { Web3Provider } from './src/providers/Web3Provider';
 import { AuthProvider } from './src/contexts/AuthContext';
