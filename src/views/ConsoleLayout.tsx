@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { Navbar } from "../../components/ui/Navbar";
+import Navbar from "../../components/ui/Navbar";
 import { Key, AlertCircle } from "lucide-react";
 
 export default function ConsoleLayout() {

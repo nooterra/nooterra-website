@@ -1,7 +1,7 @@
 import React from "react";
 import { Search, Zap, Star, Clock, ExternalLink } from "lucide-react";
-import { Navbar } from "../../components/ui/Navbar";
-import { Footer } from "../../components/Footer";
+import Navbar from "../../components/ui/Navbar";
+import Footer from "../../components/Footer";
 
 interface SearchResult {
   agentDid: string;
